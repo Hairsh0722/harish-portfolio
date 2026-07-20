@@ -1,0 +1,130 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "skills": "Skills",
+    "projects": "Projects",
+    "resume": "Resume",
+    "contact": "Contact",
+    "signIn": "Sign in",
+    "contactMe": "Contact me",
+    "scrollProgress": "Page scroll progress",
+    "themeToLight": "Switch to light mode",
+    "themeToDark": "Switch to dark mode",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "exitFullscreen": "Exit full screen",
+    "viewFullscreen": "View full screen",
+    "fullscreen": "Full screen",
+    "changeLanguage": "Change language"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Based in Chennai, India",
+      "greeting": "Hi, I'm",
+      "rolePrefix": "I'm a ",
+      "value": "Software Engineer at iOPEX Technologies. I build reliable, scalable products end to end — bridging solid backend logic with clean, intuitive interfaces.",
+      "viewResume": "View Resume",
+      "getInTouch": "Get in touch",
+      "openToOpportunities": "Open to opportunities"
+    },
+    "roles": ["Software Engineer", "Full Stack Developer"],
+    "intro": {
+      "eyebrow": "A little about me",
+      "heading": "Let me <1>introduce</1> myself",
+      "p1": "I'm a Software Engineer who loves turning ideas into reliable, scalable products. Over time I've explored many technologies and found my passion in building high-performance systems and intuitive user experiences.",
+      "p2": "I enjoy working across the full stack, bridging the gap between robust backend logic and thoughtful frontend design to deliver seamless end-to-end experiences.",
+      "p3": "I'm always eager to learn new technologies and take on challenges that push me to grow as a developer."
+    }
+  },
+  "about": {
+    "eyebrow": "About me",
+    "heading": "Know who <1>I am</1>",
+    "card": {
+      "p1": "I'm <1>Harish Siva</1>, a <3>Software Engineer</3> based in Chennai, India, currently working with the software engineering team at <5>iOPEX Technologies</5>.",
+      "p2": "I hold a degree in <1>Electronics and Instrumentation Engineering</1> from <3>Panimalar Engineering College</3>, which gives me a strong grounding in systems thinking that carries over into how I design and build software. My focus is on developing scalable, maintainable applications and solving practical problems with clean, efficient code.",
+      "interestsIntro": "<0>Outside of work, my interests include:</0>",
+      "sports": "🏏 <1>Sports</1>: Playing cricket and badminton.",
+      "travel": "✈️ <1>Travel</1>: Exploring new places and cultures.",
+      "music": "🎵 <1>Music</1>: An essential companion while coding.",
+      "quote": "\"Spread love everywhere you go\""
+    }
+  },
+  "skills": {
+    "eyebrow": "What I work with",
+    "heading": "Professional <1>skillset</1>",
+    "stats": {
+      "experience": "Years of experience",
+      "technologies": "Technologies",
+      "focus": "PHP & React focus"
+    },
+    "toolsHeading": "<0>Tools</0> I use",
+    "showcase": {
+      "eyebrow": "Featured work",
+      "heading": "Things I've <1>built</1>",
+      "lead": "A selection of projects I've worked on — the problems they solve and the parts I built."
+    },
+    "card": {
+      "keyModules": "Key modules",
+      "code": "Code",
+      "liveDemo": "Live demo",
+      "internal": "Internal project — code not public",
+      "screenshotAlt": "{{title}} screenshot"
+    },
+    "projects": {
+      "EIB": {
+        "description": "A centralized internal platform that brings an organization's employee information together in one place — from day-to-day logistics to offboarding and a complete, searchable view of every employee's data.",
+        "modules": [
+          "Transport Management System",
+          "Employee Exit Process",
+          "Employee overall data & directory"
+        ]
+      }
+    }
+  },
+  "resume": {
+    "eyebrow": "My resume",
+    "heading": "The <1>full story</1>",
+    "viewFullscreen": "View fullscreen",
+    "downloadCv": "Download CV",
+    "loading": "Loading document…",
+    "closeFullscreen": "Close fullscreen",
+    "closeEsc": "Close (Esc)",
+    "dialogLabel": "Resume — fullscreen view"
+  },
+  "contact": {
+    "eyebrow": "Say hello",
+    "heading": "Let's <1>talk</1>",
+    "lead": "Have a project, a role, or just a question? Message me on WhatsApp and we can chat in real time.",
+    "replyTime": "Usually replies within a day",
+    "asideTitle": "Reach me directly",
+    "asideCopy": "Prefer a quick chat? Message me on WhatsApp — no form needed.",
+    "chatWhatsApp": "Chat on WhatsApp"
+  },
+  "connect": {
+    "eyebrow": "Say hello",
+    "heading": "Find me <1>online</1>",
+    "lead": "Always happy to connect — whether it's about work, tech, or a good game of cricket."
+  },
+  "footer": {
+    "builtBy": "Designed & built by Harish Siva",
+    "rights": "© {{year}} Harish Siva — All rights reserved"
+  },
+  "assistant": {
+    "open": "Open AI assistant",
+    "close": "Close AI assistant",
+    "title": "AI Assistant",
+    "online": "Online",
+    "closeChat": "Close chat",
+    "placeholder": "Ask about Harish's skills, work…",
+    "typeMessage": "Type your message",
+    "sendMessage": "Send message",
+    "typing": "Assistant is typing",
+    "chatLabel": "AI assistant chat",
+    "action": {
+      "resume": "View résumé",
+      "whatsapp": "Chat on WhatsApp",
+      "open": "Open"
+    }
+  }
+}

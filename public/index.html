@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#08070f" />
+
+  <title>Harish Siva — Software Engineer</title>
+  <meta name="description"
+    content="Harish Siva — Software Engineer at iOPEX Technologies, Chennai. Building reliable, scalable products with PHP, CodeIgniter, JavaScript and React." />
+
+  <link rel="icon" type="image/png" href="%PUBLIC_URL%/favicon.png?v=3" />
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+  <!-- Google / Search Engine Tags -->
+  <meta itemprop="name" content="Harish Siva — Software Engineer" />
+  <meta itemprop="description"
+    content="Software Engineer at iOPEX Technologies, Chennai. PHP, CodeIgniter, JavaScript and React." />
+  <meta itemprop="image" content="https://harishportfolio.lovestoblog.com/og-image.png" />
+
+  <!-- Open Graph (LinkedIn / Facebook / WhatsApp) -->
+  <meta property="og:url" content="https://harishportfolio.lovestoblog.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Harish Siva — Software Engineer" />
+  <meta property="og:description"
+    content="Software Engineer at iOPEX Technologies, Chennai. Building reliable, scalable products with PHP, CodeIgniter, JavaScript and React." />
+  <meta property="og:image" content="https://harishportfolio.lovestoblog.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Harish Siva — Software Engineer" />
+  <meta name="twitter:description"
+    content="Software Engineer at iOPEX Technologies, Chennai. Building reliable, scalable products with PHP, CodeIgniter, JavaScript and React." />
+  <meta name="twitter:image" content="https://harishportfolio.lovestoblog.com/og-image.png" />
+
+  <!-- Set the color theme before first paint so light-mode visitors never see
+       a dark flash. Reads a saved choice, else falls back to the OS setting. -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("theme");
+        var theme =
+          stored === "light" || stored === "dark"
+            ? stored
+            : window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "light"
+            : "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", theme === "light" ? "#f4f3fb" : "#08070f");
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+</body>
+
+</html>
