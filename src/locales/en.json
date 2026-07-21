@@ -48,6 +48,11 @@
       "travel": "✈️ <1>Travel</1>: Exploring new places and cultures.",
       "music": "🎵 <1>Music</1>: An essential companion while coding.",
       "quote": "\"Spread love everywhere you go\""
+    },
+    "github": {
+      "heading": "Days I Code",
+      "sub": "My public GitHub contributions over the last year.",
+      "totalCount": "{{count}} contributions in the last year"
     }
   },
   "skills": {

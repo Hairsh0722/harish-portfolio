@@ -1,6 +1,7 @@
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import Aboutcard from "./AboutCard";
+import Github from "./Github";
 import avatar from "../../Assets/avatar.png";
 
 function About() {
@@ -31,6 +32,7 @@ function About() {
             </div>
           </div>
         </div>
+        <Github />
       </div>
     </section>
   );

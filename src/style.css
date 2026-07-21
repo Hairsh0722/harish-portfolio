@@ -1070,6 +1070,7 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 
 /* centred, content-hugging floating pill (never full width) */
 .nav-aurora .nav-shell {
+  position: relative; /* anchor for the in-card scroll-progress bar */
   width: auto !important;
   max-width: 100%;
   margin: 0 !important;
@@ -1104,22 +1105,30 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   flex-wrap: nowrap;
 }
 
-/* scroll progress bar pinned to the very top edge of the navbar.
-   scaleX is GPU-composited, so it never forces a repaint while scrolling. */
+/* scroll progress that traces the WHOLE pill like a ring: the accent stroke
+   draws clockwise around the card outline as the page scrolls, closing a full
+   loop at the bottom. The rAF loop feeds progress in via --p (0->1); with
+   pathLength="1" the stroke reveals through stroke-dashoffset. overflow:visible
+   lets the outer half of the stroke + its glow sit over the card border. */
 .nav-aurora .nav-progress {
+  --p: 0;
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  transform: scaleX(0);
-  transform-origin: left center;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 10px var(--accent-glow), 0 0 4px var(--accent-2-glow);
-  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
-  will-change: transform;
-  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
   pointer-events: none;
+  z-index: 2;
+}
+.nav-aurora .nav-progress__bar {
+  fill: none;
+  stroke: url(#nav-progress-grad);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--p));
+  filter: drop-shadow(0 0 4px var(--accent-glow));
+  will-change: stroke-dashoffset;
 }
 .nav-aurora .navbar-brand {
   font-family: var(--font-display);
@@ -1676,6 +1685,29 @@ html[data-theme="light"] .tk-op { color: #be185d; }
     transform: none;
   }
 }
+
+/* GitHub contribution calendar (lives at the foot of the About section) */
+.github-activity {
+  margin-top: var(--space-6);
+  text-align: center;
+}
+.github-activity__heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  margin: 0 0 var(--space-2);
+  color: var(--text-primary);
+}
+.github-activity__sub {
+  margin: 0 auto var(--space-5);
+  max-width: 52ch;
+}
+.github-activity__card {
+  padding: clamp(16px, 3vw, 28px);
+  display: flex;
+  justify-content: center;
+  overflow-x: auto; /* narrow screens scroll the full-year calendar */
+}
+
 .about-card blockquote,
 .quote-card-view {
   border: none !important;
