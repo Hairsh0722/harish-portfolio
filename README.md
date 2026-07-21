@@ -7,7 +7,9 @@
 </p>
 
 <div align="center">
-  <img alt="Demo" src="./Images/readme-img1.png" />
+  <img alt="Harish Siva portfolio — desktop view" src="./Images/readme-img1.png" width="88%" />
+  <br /><br />
+  <img alt="Harish Siva portfolio — mobile view" src="./Images/readme-img.png" width="30%" />
 </div>
 
 <p align="center">
