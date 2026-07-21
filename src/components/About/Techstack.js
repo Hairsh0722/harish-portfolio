@@ -16,7 +16,10 @@ const techs = [
   { label: "Node.js", img: Node },
   { label: "Nest.js", Icon: SiNestjs, color: "#e0234e" },
   { label: "React.js", img: ReactIcon },
-  { label: "Next.js", Icon: SiNextdotjs, color: "#f4f2fb" },
+  // Next.js is a monochrome mark — use the theme text token so it stays
+  // visible on both the dark and light backgrounds (a fixed near-white
+  // vanished against the light theme).
+  { label: "Next.js", Icon: SiNextdotjs, color: "var(--text-primary)" },
   { label: "SQL", img: SQL },
 ];
 
