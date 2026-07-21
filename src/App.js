@@ -13,6 +13,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import DeepLinkScroll from "./components/DeepLinkScroll";
 import Aurora from "./components/helper/Aurora";
 import Cursor from "./components/helper/Cursor";
+import Reveal from "./components/helper/Reveal";
 import BackToTop from "./components/helper/BackToTop";
 import AiAssistant from "./components/Assistant/AiAssistant";
 import useTheme from "./components/helper/useTheme";
@@ -38,6 +39,7 @@ function App() {
       {/* keyed on theme so the canvas layers re-read the palette tokens on switch */}
       <Aurora key={theme} />
       <Cursor />
+      <Reveal ready={!load} />
       <div className="App" id={load ? "no-scroll" : "scroll"}>
         <Navbar theme={theme} onToggleTheme={toggleTheme} />
         <DeepLinkScroll ready={!load} />

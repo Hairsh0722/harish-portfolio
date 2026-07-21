@@ -31,7 +31,10 @@ import jquey from "../../Assets/TechIcons/jquery-vertical.svg";
 
 function Techstack() {
   return (
-    <Row style={{ justifyContent: "center", paddingBottom: "50px" }}>
+    <Row
+      style={{ justifyContent: "center", paddingBottom: "50px" }}
+      data-reveal-children
+    >
       <Col xs={4} md={2} className="tech-icons">
         <img src={html} height="24" alt="html" />
         <div className="tech-icons-text">HTML</div>

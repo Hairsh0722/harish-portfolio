@@ -8,7 +8,7 @@ function Home2() {
   return (
     <div className="section" id="about-intro">
       <div className="container-x">
-        <div className="glass glass--hover">
+        <div className="glass glass--hover" data-reveal="scale" data-spotlight>
           <div className="intro-grid">
             <div>
               <span className="eyebrow">{t("home.intro.eyebrow")}</span>

@@ -142,6 +142,78 @@ html[data-theme="light"] {
   --shadow-accent: 0 8px 32px rgba(124, 58, 237, 0.22);
 }
 
+/* =============================================================
+   ACCENT THEMES  (Default / Ocean / Forest / Sunset / Custom)
+   Chosen in the navbar accent switcher, persisted to localStorage,
+   applied pre-paint in public/index.html via <html data-accent="...">.
+   Each palette declares only TWO raw hues; every accent token —
+   strong/glow variants, the name gradient (--grad-text), buttons,
+   links, rings, shadows — is derived from them below, so the whole
+   UI recolours from two values.
+   ============================================================= */
+html[data-accent="default"] {
+  --accent-raw: #a855f7;
+  --accent-2-raw: #22d3ee;
+}
+html[data-accent="ocean"] {
+  --accent-raw: #3ba9fd;
+  --accent-2-raw: #46d5f5;
+}
+html[data-accent="forest"] {
+  --accent-raw: #22c55e;
+  --accent-2-raw: #2dd4bf;
+}
+html[data-accent="sunset"] {
+  --accent-raw: #ff6b35;
+  --accent-2-raw: #ffb43d;
+}
+/* "custom" sets --accent-raw / --accent-2-raw inline on <html> via JS. */
+
+/* Derive the full accent token set from the two raw hues — applies to any
+   palette. Dark mode uses the hues as picked. */
+html[data-accent] {
+  --accent: var(--accent-raw);
+  --accent-2: var(--accent-2-raw);
+  --accent-strong: color-mix(in srgb, var(--accent-raw) 80%, #000);
+  --accent-2-strong: color-mix(in srgb, var(--accent-2-raw) 80%, #000);
+  --accent-glow: color-mix(in srgb, var(--accent-raw) 45%, transparent);
+  --accent-2-glow: color-mix(in srgb, var(--accent-2-raw) 38%, transparent);
+  --grad-accent: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    var(--accent-strong) 100%
+  );
+  --grad-accent-cyan: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    var(--accent-2) 100%
+  );
+  --grad-ring: linear-gradient(
+    140deg,
+    var(--accent),
+    var(--accent-2) 60%,
+    var(--accent-strong)
+  );
+  --grad-text: linear-gradient(
+    120deg,
+    var(--text-primary) 0%,
+    var(--accent) 55%,
+    var(--accent-2) 100%
+  );
+  --shadow-accent: 0 8px 32px color-mix(in srgb, var(--accent-raw) 35%, transparent);
+}
+
+/* Light mode: deepen the raw hues so accents stay legible on light surfaces.
+   Higher specificity than the block above, so it wins in light mode. */
+html[data-theme="light"][data-accent] {
+  --accent: color-mix(in srgb, var(--accent-raw) 82%, #000);
+  --accent-2: color-mix(in srgb, var(--accent-2-raw) 82%, #000);
+  --accent-strong: color-mix(in srgb, var(--accent-raw) 66%, #000);
+  --accent-2-strong: color-mix(in srgb, var(--accent-2-raw) 66%, #000);
+  --accent-glow: color-mix(in srgb, var(--accent-raw) 26%, transparent);
+  --accent-2-glow: color-mix(in srgb, var(--accent-2-raw) 22%, transparent);
+}
+
 /* Backdrop tuned for light: soften the color blobs, drop the starfield grain
    (white specks vanish on light), and flip the edge vignette from a dark fade
    to a light one. */
@@ -504,6 +576,110 @@ a:hover {
   font-weight: 600;
 }
 
+/* =============================================================
+   ACCENT SWITCHER  (helper/AccentSwitcher.js)
+   Mirrors the language switcher's pill + menu, with a gradient
+   colour dot per palette. Selecting one recolours the whole UI
+   via <html data-accent="...">.
+   ============================================================= */
+.accent-switch {
+  position: relative;
+}
+.accent-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 40px;
+  padding: 0 0.7rem 0 0.55rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  user-select: none;
+}
+.accent-caret {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  color: var(--text-secondary);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.accent-switch.is-open .accent-caret {
+  transform: rotate(180deg);
+}
+.accent-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 1px var(--glass-border-strong) inset,
+    0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.accent-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 172px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 20;
+  animation: nav-menu-in var(--dur-fast) var(--ease-out);
+}
+.accent-menu li {
+  margin: 0;
+}
+.accent-menu button,
+.accent-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.accent-menu button:hover,
+.accent-custom:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+.accent-menu button.is-active {
+  color: var(--accent);
+  background: var(--surface);
+  font-weight: 600;
+}
+/* The Custom row hosts a native colour input, hidden behind its swatch dot. */
+.accent-custom {
+  position: relative;
+}
+.accent-color-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
 /* Google sign-in button — styled like the image; links out, no real auth */
 .signin-btn {
   display: inline-flex;
@@ -586,6 +762,9 @@ a:hover {
   }
   .nav-actions {
     gap: 6px;
+    margin-left: auto; /* push the cluster to the pill's trailing edge */
+    flex-wrap: wrap; /* never clip: drop to a second row if a phone is too narrow */
+    justify-content: flex-end;
   }
   .nav-actions .nav-divider {
     display: none;
@@ -596,7 +775,10 @@ a:hover {
     height: 36px;
     font-size: 1rem;
   }
-  .lang-pill {
+  /* Match the accent pill's height to the other controls so the whole row
+     sits on one baseline (it kept the taller 40px desktop size otherwise). */
+  .lang-pill,
+  .accent-pill {
     height: 36px;
     padding: 0 0.5rem;
     gap: 0.3rem;
@@ -620,6 +802,31 @@ a:hover {
   .nav-aurora .navbar-collapse {
     order: 10;
     flex-basis: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Phones are too narrow for every label at once, so the accent name and the
+     "Sign in" text collapse to their icons and the (desktop-oriented) fullscreen
+     toggle drops out — keeping the control row on a single, uncramped line. */
+  .accent-pill {
+    padding: 0 0.4rem;
+    gap: 0.2rem;
+  }
+  .accent-pill .accent-name {
+    display: none;
+  }
+  .nav-aurora .fullscreen-toggle {
+    display: none;
+  }
+  .signin-btn {
+    width: 36px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+  }
+  .signin-btn span {
+    display: none;
   }
 }
 
@@ -714,7 +921,7 @@ html.has-aurora-cursor * {
 .cursor__glow {
   width: 280px;
   height: 280px;
-  background: radial-gradient(circle, var(--accent-glow) 0%, rgba(168, 85, 247, 0) 68%);
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 68%);
   filter: blur(6px);
   mix-blend-mode: screen;
   transition: opacity 0.3s ease;
@@ -735,7 +942,7 @@ html.cursor-visible.cursor-hover .cursor__ring {
   width: 54px;
   height: 54px;
   border-color: var(--accent);
-  background-color: rgba(168, 85, 247, 0.08);
+  background-color: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 html.cursor-visible.cursor-hover .cursor__glow {
   opacity: 0.72;
@@ -889,17 +1096,17 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 .btn-primary {
   /* darker violet gradient + white text keeps AA (>=4.5:1) across the whole surface */
   color: #ffffff !important;
-  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%) !important;
+  background: var(--grad-accent) !important;
   border: none !important;
-  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.35);
+  box-shadow: 0 6px 20px var(--accent-glow);
 }
 .btn-primary:hover,
 .btn-primary:focus {
   color: #ffffff !important;
-  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%) !important;
+  background: var(--grad-accent) !important;
   transform: translateY(-2px);
   filter: brightness(1.06);
-  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.5);
+  box-shadow: 0 10px 30px var(--accent-glow);
 }
 
 .btn-outline {
@@ -959,7 +1166,7 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   color: var(--text-primary);
   border-color: var(--glass-border-strong);
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.28);
+  box-shadow: 0 6px 18px var(--accent-glow);
 }
 .status-chip {
   display: inline-flex;
@@ -1038,7 +1245,7 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 .skill-tile:hover {
   transform: translateY(-6px) scale(1.04);
   border-color: var(--accent);
-  box-shadow: 0 14px 34px rgba(168, 85, 247, 0.3), 0 0 0 1px var(--accent-glow);
+  box-shadow: 0 14px 34px var(--accent-glow), 0 0 0 1px var(--accent-glow);
 }
 .skill-tile:hover img,
 .skill-tile:hover svg {
@@ -1046,6 +1253,81 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 }
 .skill-tile:hover .skill-label {
   color: var(--text-primary);
+}
+
+/* -------------------------------------------------------------
+   AUTO-SCROLL MARQUEE  (Skills page tech + tools rows)
+   Two identical tile groups slide left/right forever; the track
+   moves by exactly one group + gap so the loop is seamless.
+   ------------------------------------------------------------- */
+.skill-marquee {
+  --marquee-gap: var(--space-4);
+  --marquee-speed: 32s;
+  position: relative;
+  overflow: hidden;
+  margin: var(--space-5) auto var(--space-6);
+  max-width: 100%;
+  /* soft fade at both edges so tiles melt in/out instead of hard-clipping */
+  -webkit-mask: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+  mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.skill-marquee__track {
+  display: flex;
+  width: max-content;
+  gap: var(--marquee-gap);
+  animation: marquee-scroll var(--marquee-speed) linear infinite;
+  will-change: transform;
+}
+.skill-marquee__group {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--marquee-gap);
+}
+/* reverse direction for the tools row */
+.skill-marquee--right .skill-marquee__track {
+  animation-direction: reverse;
+}
+/* pause while the visitor is inspecting a tile */
+.skill-marquee:hover .skill-marquee__track {
+  animation-play-state: paused;
+}
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* one group width + one gap = exactly half the track + half a gap */
+    transform: translateX(calc(-50% - var(--marquee-gap) / 2));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* no motion — fall back to the original static, centered wrap */
+  .skill-marquee {
+    overflow: visible;
+    -webkit-mask: none;
+    mask: none;
+  }
+  .skill-marquee__track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    transform: none;
+    width: auto;
+  }
+  .skill-marquee__group {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  /* the duplicate copy is redundant when nothing scrolls */
+  .skill-marquee__group + .skill-marquee__group {
+    display: none;
+  }
 }
 
 /* =============================================================
@@ -1105,30 +1387,32 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   flex-wrap: nowrap;
 }
 
-/* scroll progress that traces the WHOLE pill like a ring: the accent stroke
-   draws clockwise around the card outline as the page scrolls, closing a full
-   loop at the bottom. The rAF loop feeds progress in via --p (0->1); with
-   pathLength="1" the stroke reveals through stroke-dashoffset. overflow:visible
-   lets the outer half of the stroke + its glow sit over the card border. */
+/* Scroll progress as a single accent line along the bottom of the pill: the
+   rAF loop writes scaleX(0->1) onto the fill each frame as the page scrolls.
+   Inset from the pill's rounded ends and clipped to a pill radius so it reads
+   as a tidy underline. No per-frame filter (a blurred drop-shadow would
+   re-rasterise every frame and is the main source of scroll jank) — a flat
+   gradient bar repaints cheaply, so it tracks scroll smoothly. */
 .nav-aurora .nav-progress {
-  --p: 0;
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  overflow: visible;
+  overflow: visible; /* let the outer half of the stroke sit over the border */
   pointer-events: none;
   z-index: 2;
 }
+/* The rAF loop writes stroke-dashoffset inline each frame. No filter here on
+   purpose: a per-frame drop-shadow re-rasterises a blurred layer every frame
+   and is the main source of scroll jank. The gradient stroke alone stays crisp
+   and repaints cheaply (a thin outline), so the ring tracks scroll smoothly. */
 .nav-aurora .nav-progress__bar {
   fill: none;
   stroke: url(#nav-progress-grad);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 1;
-  stroke-dashoffset: calc(1 - var(--p));
-  filter: drop-shadow(0 0 4px var(--accent-glow));
-  will-change: stroke-dashoffset;
+  stroke-dashoffset: 1; /* start empty; driven inline by the loop */
 }
 .nav-aurora .navbar-brand {
   font-family: var(--font-display);
@@ -1181,14 +1465,14 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 .nav-aurora .nav-link.active::after {
   content: "";
   position: absolute;
-  left: 50%;
-  bottom: 1px;
+  left: 0.4rem;
+  top: 50%;
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 8px var(--accent-glow);
-  transform: translateX(-50%);
+  transform: translateY(-50%);
 }
 
 /* mobile toggler */
@@ -1296,7 +1580,19 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   color: var(--text-primary);
   margin: 0 0 var(--space-4);
 }
+/* Greeting sits above the name at a smaller size (like the reference),
+   so the name reads as the hero. Its own line — the name follows below. */
+.hero-greeting {
+  display: block;
+  font-weight: 500;
+  font-size: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
 .hero-name .accent {
+  display: block;
   background: var(--grad-text);
   -webkit-background-clip: text;
   background-clip: text;
@@ -1310,6 +1606,16 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   color: var(--text-secondary);
   margin-bottom: var(--space-5);
   min-height: 1.4em;
+  /* Keep "I'm a <role>" on a single line, like the image.
+     typewriter-effect renders inside a block <div>, so use flex + a small
+     gap to keep the prefix and the animated role on one baseline-aligned row. */
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  white-space: nowrap;
+}
+.hero-role .Typewriter {
+  display: inline-block;
 }
 .hero-role .prefix {
   color: var(--text-muted);
@@ -1561,7 +1867,7 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   font-family: var(--font-mono);
   font-size: clamp(0.74rem, 0.68rem + 0.3vw, 0.86rem);
   line-height: 1.75;
-  background: radial-gradient(120% 80% at 100% 0%, rgba(168, 85, 247, 0.08), transparent 60%);
+  background: radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%);
   overflow-x: auto;
 }
 .code-line {
@@ -1587,7 +1893,7 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 }
 
 /* syntax highlight palette (tuned to the aurora dark theme) */
-.tk-kw { color: #c792ea; }
+.tk-kw { color: var(--accent); }
 .tk-var { color: var(--text-primary); }
 .tk-prop { color: var(--accent-2); }
 .tk-str { color: #9ff5c8; }
@@ -1606,9 +1912,9 @@ html[data-theme="light"] .code-card__bar {
   background: rgba(23, 19, 31, 0.04);
 }
 html[data-theme="light"] .code-card__body {
-  background: radial-gradient(120% 80% at 100% 0%, rgba(124, 58, 237, 0.06), transparent 60%);
+  background: radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 60%);
 }
-html[data-theme="light"] .tk-kw { color: #9333ea; }
+html[data-theme="light"] .tk-kw { color: var(--accent); }
 html[data-theme="light"] .tk-str { color: #15803d; }
 html[data-theme="light"] .tk-bool { color: #b45309; }
 html[data-theme="light"] .tk-op { color: #be185d; }
@@ -1641,34 +1947,58 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   justify-content: center;
   align-items: center;
 }
+/* The conic ring's start angle is animated. Registering it as an <angle>
+   lets it interpolate smoothly (and inherit into the bloom pseudo). Browsers
+   without @property fall back to the static gradient below. */
+@property --ring-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
 .about-photo-frame {
   position: relative;
   width: clamp(200px, 26vw, 320px);
   aspect-ratio: 1 / 1;
   border-radius: var(--radius-pill);
-  padding: 6px;
+  padding: 7px;
+  /* fallback for engines without conic-gradient / @property */
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  /* animated aurora ring: a conic gradient whose start angle spins */
+  background: conic-gradient(
+    from var(--ring-angle, 0deg),
+    var(--accent),
+    var(--accent-2),
+    var(--aurora-magenta),
+    var(--accent-2),
+    var(--accent)
+  );
   box-shadow: 0 18px 48px var(--accent-glow), 0 0 0 1px var(--glass-highlight);
-  transition: transform var(--dur-med) var(--ease-out),
-    box-shadow var(--dur-med) var(--ease-out);
+  animation: photo-float 6s var(--ease-in-out) infinite,
+    ring-spin 9s linear infinite;
+  transition: box-shadow var(--dur-med) var(--ease-out);
 }
+/* soft aurora bloom behind the frame — rotates with the ring */
 .about-photo-frame::before {
   content: "";
   position: absolute;
-  inset: -18%;
+  inset: -20%;
   border-radius: inherit;
-  background: radial-gradient(
-    circle at 50% 50%,
+  background: radial-gradient(circle at 50% 50%, var(--accent-glow), transparent 70%);
+  background: conic-gradient(
+    from var(--ring-angle, 0deg),
     var(--accent-glow),
-    transparent 70%
+    var(--accent-2-glow),
+    var(--aurora-magenta),
+    var(--accent-glow)
   );
-  filter: blur(28px);
-  opacity: 0.7;
+  filter: blur(34px);
+  opacity: 0.6;
   z-index: -1;
 }
 .about-photo-frame:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 24px 60px var(--accent-glow), 0 0 0 1px var(--accent);
+  box-shadow: 0 26px 70px var(--accent-glow), 0 0 0 1px var(--accent);
+  animation-duration: 6s, 4s; /* keep the float, spin the ring faster */
 }
 .about-photo {
   display: block;
@@ -1676,13 +2006,61 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   height: 100%;
   border-radius: inherit;
   object-fit: cover;
+  background: var(--bg-elev-1);
+  transition: transform var(--dur-med) var(--ease-out);
+}
+.about-photo-frame:hover .about-photo {
+  transform: scale(1.045);
+}
+/* a single accent spark orbiting the ring */
+.photo-orbit {
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 3;
+  animation: orbit-spin 7s linear infinite;
+}
+.photo-orbit::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 14px 2px var(--accent-2-glow);
+}
+@keyframes ring-spin {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+@keyframes photo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+@keyframes orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .about-photo-frame {
-    transition: none;
+    animation: none;
   }
-  .about-photo-frame:hover {
+  .about-photo-frame:hover .about-photo {
     transform: none;
+  }
+  .photo-orbit {
+    display: none;
   }
 }
 
@@ -1870,7 +2248,7 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(34, 211, 238, 0.18));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 30%, transparent), color-mix(in srgb, var(--accent-2) 18%, transparent));
   border-bottom: 1px solid var(--glass-border);
   overflow: hidden;
 }
@@ -1962,10 +2340,10 @@ html[data-theme="light"] .tk-op { color: #be185d; }
    ============================================================= */
 .contact-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1.35fr 1fr;
   gap: clamp(20px, 3vw, 36px);
   align-items: start;
-  max-width: 560px;
+  max-width: 940px;
   margin-inline: auto;
 }
 
@@ -2156,10 +2534,16 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   position: fixed;
   inset: 0;
   z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: var(--bg-base);
-  background-image: url(./Assets/pre.svg);
-  background-repeat: no-repeat;
-  background-position: center;
+  /* spinner stroke follows the theme accent (see Pre.js currentColor) */
+  color: var(--accent);
+}
+#preloader .preloader__spinner {
+  width: 80px;
+  height: 80px;
 }
 #preloader-none {
   opacity: 0;
@@ -2628,6 +3012,256 @@ html[data-theme="light"] .tk-op { color: #be185d; }
     width: auto;
     bottom: calc(12px + 58px + 12px);
     height: min(70vh, 540px);
+  }
+}
+
+/* =============================================================
+   SCROLL REVEAL  (see helper/Reveal.jsx)
+   Entrance motion for sections, cards and grids. Hidden states live
+   ONLY under `no-preference`, so with reduced motion (or if the JS
+   never runs) everything is simply visible — nothing can get stuck.
+   ============================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal],
+  [data-reveal-children] > * {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity var(--dur-slow) var(--ease-out),
+      transform var(--dur-slow) var(--ease-out);
+    will-change: opacity, transform;
+  }
+  [data-reveal="left"] {
+    transform: translateX(-36px);
+  }
+  [data-reveal="right"] {
+    transform: translateX(36px);
+  }
+  [data-reveal="scale"] {
+    transform: scale(0.94);
+  }
+  [data-reveal="fade"] {
+    transform: none;
+  }
+  [data-reveal].is-revealed,
+  [data-reveal-children] > *.is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* =============================================================
+   CARD SPOTLIGHT  (see helper/Reveal.jsx)
+   A soft accent glow follows the pointer inside tagged glass cards.
+   The --mx/--my custom props are fed per-frame from JS; they default
+   to the card centre so the layer is well-behaved before first move.
+   ============================================================= */
+[data-spotlight] {
+  --mx: 50%;
+  --my: 50%;
+}
+[data-spotlight]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    240px circle at var(--mx) var(--my),
+    var(--accent-glow),
+    transparent 60%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-med) var(--ease-out);
+  z-index: 0;
+}
+[data-spotlight]:hover::after {
+  opacity: 0.7;
+}
+/* keep real content above the glow layer */
+[data-spotlight] > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =============================================================
+   ANIMATED GRADIENT TEXT  (hero name + accent headings)
+   Gives the existing --grad-text a slow, living shimmer without
+   moving layout. Purely decorative — disabled with reduced motion.
+   ============================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-name .accent,
+  .accent-text,
+  .section-heading .accent {
+    background-size: 220% 220%;
+    animation: text-shimmer 8s var(--ease-in-out) infinite;
+  }
+}
+@keyframes text-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* =============================================================
+   3D TILT CARDS  (project grid — react-parallax-tilt)
+   The grid cell is the scroll-reveal target; the Tilt wrapper inside
+   owns the pointer tilt, so the two transforms never fight.
+   ============================================================= */
+.project-cell {
+  display: flex;
+}
+.project-cell,
+.project-tilt {
+  width: 100%;
+}
+.project-tilt {
+  border-radius: var(--radius-lg);
+}
+.project-tilt .project-card {
+  height: 100%;
+}
+
+/* =============================================================
+   THEME TOGGLE — VIEW TRANSITION WIPE  (see helper/useTheme.js)
+   On dark/light switch, the incoming theme is revealed with a circular
+   wipe expanding from the toggle button. Origin fed via --vt-x/--vt-y.
+   Only runs where the View Transitions API exists AND motion is allowed
+   (both gated in JS); everything else swaps instantly.
+   ============================================================= */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html.theme-vt::view-transition-old(root) {
+  z-index: 0;
+}
+html.theme-vt::view-transition-new(root) {
+  z-index: 1;
+  animation: theme-wipe 0.55s var(--ease-out);
+}
+@keyframes theme-wipe {
+  from {
+    clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 0));
+  }
+  to {
+    clip-path: circle(160% at var(--vt-x, 50%) var(--vt-y, 0));
+  }
+}
+
+/* =============================================================
+   SCROLL-DRIVEN CINEMATICS  (progressive enhancement)
+   Off-main-thread CSS scroll/view timelines drive these — there are
+   NO scroll handlers and nothing repaints on scroll, so the aurora
+   performance rule holds. Everything is wrapped in
+   @supports (animation-timeline) so browsers without the API fall
+   back to the fully-visible static page, and in a no-preference query
+   so reduced-motion users get none of it.
+   ============================================================= */
+
+/* ---- Hero recede --------------------------------------------------
+   As the first viewport scrolls away the hero gently drifts up and
+   dissolves, handing off to the content below. Applied to .hero itself
+   (no reveal transform lives on this element, so nothing fights it). */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero {
+      animation: hero-recede linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 92vh;
+    }
+  }
+}
+@keyframes hero-recede {
+  0% { opacity: 1; transform: translateY(0); }
+  60% { opacity: 1; }
+  100% { opacity: 0.12; transform: translateY(-52px); }
+}
+
+/* ---- Hero scroll cue ----------------------------------------------
+   A small mouse hint that bobs, then fades out the instant the reader
+   starts scrolling (fade is scroll-linked; the wheel bob is a plain
+   loop). Absolutely positioned inside the relative .hero. */
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(14px, 3vh, 30px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.scroll-cue__mouse {
+  position: relative;
+  width: 22px;
+  height: 34px;
+  border: 1.5px solid var(--glass-border-strong);
+  border-radius: var(--radius-pill);
+}
+.scroll-cue__mouse::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 3px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--accent-2);
+  transform: translateX(-50%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-cue__mouse::after {
+    animation: scroll-cue-wheel 1.7s var(--ease-in-out) infinite;
+  }
+}
+@keyframes scroll-cue-wheel {
+  0% { opacity: 0; transform: translate(-50%, 0); }
+  30% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, 9px); }
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-cue {
+      animation: scroll-cue-fade linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 16vh;
+    }
+  }
+}
+@keyframes scroll-cue-fade {
+  to { opacity: 0; }
+}
+
+/* =============================================================
+   HERO HEADLINE ENTRANCE
+   The greeting lifts in with the generic reveal-children stagger; on
+   top of that the gradient name draws itself in with a left-to-right
+   clip wipe. The wipe is a clip-path *transition* keyed off the reveal
+   system's `.is-revealed` (added to the <h1> once it enters view) — so
+   it plays after the preloader lifts and replays on scroll-back, in
+   step with the rest of the page. It rides alongside the name's living
+   shimmer (a separate `animation` property) with no conflict.
+   ============================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-name .accent {
+    clip-path: inset(0 105% 0 -5%);
+    transition: clip-path 0.85s var(--ease-out);
+  }
+  .hero-name.is-revealed .accent {
+    clip-path: inset(0 -5% 0 -5%);
   }
 }
 

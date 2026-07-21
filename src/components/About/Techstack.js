@@ -1,5 +1,6 @@
 import React from "react";
 import { SiJquery, SiNestjs, SiNextdotjs, SiPhp } from "react-icons/si";
+import SkillMarquee from "../helper/SkillMarquee";
 import Javascript from "../../Assets/TechIcons/Javascript.svg";
 import Node from "../../Assets/TechIcons/Node.svg";
 import ReactIcon from "../../Assets/TechIcons/React.svg";
@@ -24,16 +25,7 @@ const techs = [
 ];
 
 function Techstack() {
-  return (
-    <div className="skills-grid">
-      {techs.map(({ label, img, Icon, color }) => (
-        <div className="skill-tile" key={label} title={label}>
-          {img ? <img src={img} alt={label} /> : <Icon style={{ color }} />}
-          <span className="skill-label">{label}</span>
-        </div>
-      ))}
-    </div>
-  );
+  return <SkillMarquee items={techs} direction="left" />;
 }
 
 export default Techstack;

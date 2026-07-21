@@ -1,4 +1,5 @@
 import React from "react";
+import Tilt from "react-parallax-tilt";
 import { BsGithub } from "react-icons/bs";
 import { CgWebsite } from "react-icons/cg";
 import { FiCheck } from "react-icons/fi";
@@ -18,7 +19,16 @@ function ProjectCards({
   const hasLinks = Boolean(ghLink || demoLink);
 
   return (
-    <article className="project-card glass glass--hover">
+    <div className="project-cell">
+      <Tilt
+        tiltMaxAngleX={7}
+        tiltMaxAngleY={7}
+        glareEnable={false}
+        scale={1.02}
+        transitionSpeed={800}
+        className="project-tilt"
+      >
+        <article className="project-card glass glass--hover" data-spotlight>
       <div className="project-cover">
         {imgPath ? (
           <img src={imgPath} alt={t("skills.card.screenshotAlt", { title })} />
@@ -84,7 +94,9 @@ function ProjectCards({
           )}
         </div>
       </div>
-    </article>
+        </article>
+      </Tilt>
+    </div>
   );
 }
 

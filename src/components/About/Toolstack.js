@@ -1,5 +1,6 @@
 import React from "react";
 import { SiUbuntu, SiXampp, SiPrisma } from "react-icons/si";
+import SkillMarquee from "../helper/SkillMarquee";
 import macOs from "../../Assets/TechIcons/Apple MacOSX.svg";
 import chrome from "../../Assets/TechIcons/Google Chrome.svg";
 import vsCode from "../../Assets/TechIcons/vscode.svg";
@@ -20,16 +21,7 @@ const tools = [
 ];
 
 function Toolstack() {
-  return (
-    <div className="skills-grid">
-      {tools.map(({ label, img, Icon, color }) => (
-        <div className="skill-tile" key={label} title={label}>
-          {img ? <img src={img} alt={label} /> : <Icon style={{ color }} />}
-          <span className="skill-label">{label}</span>
-        </div>
-      ))}
-    </div>
-  );
+  return <SkillMarquee items={tools} direction="right" />;
 }
 
 export default Toolstack;

@@ -55,7 +55,22 @@ const Cursor = () => {
       glowPos.y = lerp(glowPos.y, target.y, 0.12);
       place(ring, ringPos.x, ringPos.y);
       place(glow, glowPos.x, glowPos.y);
-      raf = window.requestAnimationFrame(render);
+
+      // Stop the loop once the trailing ring/glow have caught up to the
+      // pointer — no point burning frames (and stealing scroll budget) while
+      // the cursor is at rest. A new pointer move kicks it back off.
+      const settled =
+        Math.abs(ringPos.x - target.x) +
+          Math.abs(ringPos.y - target.y) +
+          Math.abs(glowPos.x - target.x) +
+          Math.abs(glowPos.y - target.y) <
+        0.5;
+      raf = settled ? 0 : window.requestAnimationFrame(render);
+    };
+
+    // (re)start the easing loop; no-op if it's already running
+    const kick = () => {
+      if (!raf) raf = window.requestAnimationFrame(render);
     };
 
     const reveal = () => {
@@ -67,6 +82,7 @@ const Cursor = () => {
       target.x = e.clientX;
       target.y = e.clientY;
       reveal();
+      kick();
     };
     const onOver = (e) => {
       const hit = e.target.closest && e.target.closest(interactiveSel);

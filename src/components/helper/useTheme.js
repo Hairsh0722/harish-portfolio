@@ -51,17 +51,51 @@ export default function useTheme() {
     };
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => {
-      const next = prev === "dark" ? "light" : "dark";
+  const toggleTheme = useCallback(
+    (e) => {
+      const next = theme === "dark" ? "light" : "dark";
       try {
         localStorage.setItem(THEME_KEY, next);
       } catch (err) {
         /* storage unavailable — theme still applies for this session */
       }
-      return next;
-    });
-  }, []);
+
+      const reduce =
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const canWipe =
+        typeof document !== "undefined" &&
+        typeof document.startViewTransition === "function" &&
+        !reduce;
+
+      if (!canWipe) {
+        setTheme(next);
+        return;
+      }
+
+      // Anchor the circular wipe at the click point (the toggle button),
+      // falling back to the top-centre if no coordinates are available.
+      const root = document.documentElement;
+      const x = e && e.clientX != null ? `${e.clientX}px` : "50%";
+      const y = e && e.clientY != null ? `${e.clientY}px` : "8%";
+      root.style.setProperty("--vt-x", x);
+      root.style.setProperty("--vt-y", y);
+      root.classList.add("theme-vt");
+
+      const transition = document.startViewTransition(() => {
+        // Flip the attribute synchronously so the "after" snapshot is the
+        // new theme; React state is updated too, keeping the hook in sync.
+        root.setAttribute("data-theme", next);
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) {
+          meta.setAttribute("content", META_COLORS[next] || META_COLORS.dark);
+        }
+        setTheme(next);
+      });
+      transition.finished.finally(() => root.classList.remove("theme-vt"));
+    },
+    [theme]
+  );
 
   return [theme, toggleTheme];
 }

@@ -5,12 +5,8 @@ import { requestResume } from "../helper/resumeReveal";
 import Type from "./Type";
 import heroAnim from "../../Assets/lottie/Developer2.json";
 import AnimationLottie from "../helper/animation-lottie";
-import {
-  AiOutlineArrowRight,
-  AiFillInstagram,
-  AiFillFacebook,
-} from "react-icons/ai";
-import { FaLinkedinIn, FaGithub } from "react-icons/fa";
+import { AiOutlineArrowRight, AiFillFacebook } from "react-icons/ai";
+import { FaLinkedinIn, FaGithub, FaInstagram } from "react-icons/fa";
 import { HiOutlineMail } from "react-icons/hi";
 import { useTranslation } from "react-i18next";
 
@@ -28,7 +24,7 @@ const socials = [
     brand: "github",
   },
   {
-    icon: <AiFillInstagram />,
+    icon: <FaInstagram />,
     href: "https://www.instagram.com/harish_.siva",
     label: "Instagram",
     brand: "instagram",
@@ -48,11 +44,10 @@ function Home() {
       {/* ---------------- HERO ---------------- */}
       <div className="hero">
         <div className="container-x hero-grid">
-          <div className="hero-copy">
+          <div className="hero-copy" data-reveal-children>
             <span className="eyebrow">{t("home.hero.eyebrow")}</span>
             <h1 className="hero-name">
-              {t("home.hero.greeting")}
-              <br />
+              <span className="hero-greeting">{t("home.hero.greeting")}</span>
               <span className="accent">Harish Siva</span>
             </h1>
             <div className="hero-role">
@@ -65,6 +60,7 @@ function Home() {
                 type="button"
                 className="btn btn-primary"
                 onClick={() => requestResume()}
+                data-magnetic="0.35"
               >
                 {t("home.hero.viewResume")} <AiOutlineArrowRight />
               </button>
@@ -72,6 +68,7 @@ function Home() {
                 type="button"
                 className="btn btn-outline"
                 onClick={() => scrollToSection("contact")}
+                data-magnetic="0.35"
               >
                 <HiOutlineMail /> {t("home.hero.getInTouch")}
               </button>
@@ -92,7 +89,7 @@ function Home() {
             </div>
           </div>
 
-          <div className="hero-visual">
+          <div className="hero-visual" data-reveal="right">
             <div className="hero-panel glass">
               <span className="status-chip hero-status">
                 <span className="dot" /> {t("home.hero.openToOpportunities")}
@@ -102,6 +99,13 @@ function Home() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Scroll cue — bobs, then fades out as the reader scrolls
+            (fade is scroll-linked in CSS; see SCROLL-DRIVEN CINEMATICS). */}
+        <div className="scroll-cue" aria-hidden="true">
+          <span className="scroll-cue__mouse" />
+          <span className="scroll-cue__label">{t("home.hero.scrollCue")}</span>
         </div>
       </div>
 

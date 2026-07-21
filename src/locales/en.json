@@ -16,17 +16,27 @@
     "exitFullscreen": "Exit full screen",
     "viewFullscreen": "View full screen",
     "fullscreen": "Full screen",
-    "changeLanguage": "Change language"
+    "changeLanguage": "Change language",
+    "changeAccent": "Change accent colour",
+    "customColor": "Pick a custom colour",
+    "accents": {
+      "custom": "Custom",
+      "default": "Purple",
+      "ocean": "Ocean",
+      "forest": "Forest",
+      "sunset": "Sunset"
+    }
   },
   "home": {
     "hero": {
       "eyebrow": "Based in Chennai, India",
-      "greeting": "Hi, I'm",
+      "greeting": "Hi 👋 My name is",
       "rolePrefix": "I'm a ",
       "value": "Software Engineer at iOPEX Technologies. I build reliable, scalable products end to end — bridging solid backend logic with clean, intuitive interfaces.",
       "viewResume": "View Resume",
       "getInTouch": "Get in touch",
-      "openToOpportunities": "Open to opportunities"
+      "openToOpportunities": "Open to opportunities",
+      "scrollCue": "Scroll"
     },
     "roles": ["Software Engineer", "Full Stack Developer"],
     "intro": {
@@ -100,11 +110,28 @@
   "contact": {
     "eyebrow": "Say hello",
     "heading": "Let's <1>talk</1>",
-    "lead": "Have a project, a role, or just a question? Message me on WhatsApp and we can chat in real time.",
+    "lead": "Have a project, a role, or just a question? Drop me a message below, or ping me on WhatsApp for a real-time chat.",
     "replyTime": "Usually replies within a day",
     "asideTitle": "Reach me directly",
     "asideCopy": "Prefer a quick chat? Message me on WhatsApp — no form needed.",
-    "chatWhatsApp": "Chat on WhatsApp"
+    "chatWhatsApp": "Chat on WhatsApp",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "message": "Message",
+      "messagePlaceholder": "Tell me a little about what you have in mind…",
+      "send": "Send email",
+      "sending": "Sending…",
+      "success": "Thanks! Your message has been sent — I'll get back to you soon.",
+      "error": "Something went wrong. Please try again, or reach me on WhatsApp.",
+      "notConfigured": "The mail service isn't configured yet. Please reach me on WhatsApp for now.",
+      "errName": "Please enter your name.",
+      "errEmailRequired": "Please enter your email.",
+      "errEmailInvalid": "Please enter a valid email address.",
+      "errMessage": "Please enter a message."
+    }
   },
   "connect": {
     "eyebrow": "Say hello",

@@ -42,7 +42,7 @@ function AboutCard() {
             </li>
           </ul>
 
-          <p style={{ color: "rgb(155 126 172)" }}>
+          <p style={{ color: "color-mix(in srgb, var(--accent) 45%, var(--text-muted))" }}>
             <Trans i18nKey="about.card.quote">"Spread love everywhere you go"</Trans>{" "}
           </p>
           <footer className="blockquote-footer">Harish</footer>

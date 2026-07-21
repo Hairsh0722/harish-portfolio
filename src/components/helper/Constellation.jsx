@@ -42,6 +42,14 @@ const Constellation = () => {
     let particles = [];
     let linkDist = 150;
     let rafId = 0;
+    // Cap the draw rate (~32fps) and freeze the loop while the page is being
+    // actively scrolled, so the animation never competes with the compositor
+    // for frame budget — the background dots hold a static frame mid-scroll,
+    // which is imperceptible, and resume the moment scrolling settles.
+    const FRAME_MS = 1000 / 32;
+    let lastTs = 0;
+    let scrolling = false;
+    let scrollTimer = 0;
     const mouse = { x: -9999, y: -9999, active: false };
 
     const build = () => {
@@ -55,8 +63,8 @@ const Constellation = () => {
 
       const mobile = w < 768;
       linkDist = mobile ? 110 : 150;
-      const divisor = mobile ? 26000 : 16000;
-      const cap = mobile ? 46 : 120;
+      const divisor = mobile ? 28000 : 19000;
+      const cap = mobile ? 40 : 90;
       const count = Math.min(cap, Math.floor((w * h) / divisor));
 
       particles = new Array(count).fill(0).map((_, i) => ({
@@ -117,7 +125,11 @@ const Constellation = () => {
       }
     };
 
-    const step = () => {
+    const step = (ts) => {
+      rafId = window.requestAnimationFrame(step);
+      if (ts - lastTs < FRAME_MS) return; // throttle to ~32fps
+      lastTs = ts;
+
       for (let i = 0; i < particles.length; i += 1) {
         const p = particles[i];
         p.x += p.vx;
@@ -128,11 +140,13 @@ const Constellation = () => {
         else if (p.y > h + 10) p.y = -10;
       }
       draw();
-      rafId = window.requestAnimationFrame(step);
     };
 
     const start = () => {
-      if (!rafId) rafId = window.requestAnimationFrame(step);
+      if (!rafId && !scrolling && !document.hidden) {
+        lastTs = 0;
+        rafId = window.requestAnimationFrame(step);
+      }
     };
     const stop = () => {
       if (rafId) {
@@ -157,6 +171,15 @@ const Constellation = () => {
       if (document.hidden) stop();
       else start();
     };
+    const onScroll = () => {
+      scrolling = true;
+      stop(); // hold the current frame; free the main thread for scrolling
+      if (scrollTimer) window.clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(() => {
+        scrolling = false;
+        start();
+      }, 180);
+    };
 
     build();
 
@@ -170,14 +193,17 @@ const Constellation = () => {
     window.addEventListener("resize", onResize);
     window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("mouseout", onLeave);
+    window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
     start();
 
     return () => {
       stop();
+      if (scrollTimer) window.clearTimeout(scrollTimer);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseout", onLeave);
+      window.removeEventListener("scroll", onScroll);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);

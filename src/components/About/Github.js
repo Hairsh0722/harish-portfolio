@@ -1,52 +1,108 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import GitHubCalendar from "react-github-calendar";
 import { useTranslation } from "react-i18next";
 
 const GITHUB_USERNAME = "Hairsh0722";
 
-// Purple ramps tuned to the aurora palette, one per theme so the empty days
-// read correctly against both the dark and light backgrounds.
-const CAL_THEMES = {
-  dark: {
-    level0: "#1b1730",
-    level1: "#3f2768",
-    level2: "#6a3ea6",
-    level3: "#9a63d9",
-    level4: "#c9a2ff",
-  },
-  light: {
-    level0: "#ece8f6",
-    level1: "#d2bcef",
-    level2: "#b088e0",
-    level3: "#8a57c9",
-    level4: "#6a34a8",
-  },
-};
+// react-github-calendar does JS-level colour parsing on the theme it's given,
+// so it must receive real hex values — not "var(--accent)" strings. Instead we
+// build the 5-level ramp from the *resolved* accent colour at runtime and
+// rebuild it whenever the theme OR the accent palette changes, so the calendar
+// tracks the accent switcher just like the rest of the UI.
 
-// Track <html data-theme> so the calendar recolors on theme toggle without
-// threading a theme prop down through About. useTheme() owns the attribute;
-// we just observe it (a second useTheme() call would fork the state).
-function useThemeAttr() {
-  const [theme, setTheme] = useState(
-    () =>
-      (typeof document !== "undefined" &&
-        document.documentElement.getAttribute("data-theme")) ||
-      "dark"
-  );
+const FALLBACK_ACCENT = [168, 85, 247];
+const FALLBACK_BASE = [13, 11, 24];
+
+function parseColorToRgb(str, fallback) {
+  if (!str) return fallback;
+  const s = str.trim();
+  if (s.startsWith("#")) {
+    let h = s.slice(1);
+    if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+    const n = parseInt(h, 16);
+    if (Number.isNaN(n)) return fallback;
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  const m = s.match(/[\d.]+/g); // rgb()/rgba() -> first three numbers
+  if (m && m.length >= 3) return [Number(m[0]), Number(m[1]), Number(m[2])];
+  return fallback;
+}
+
+function toHex([r, g, b]) {
+  const h = (v) =>
+    Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+  return `#${h(r)}${h(g)}${h(b)}`;
+}
+
+// blend colour a toward colour b by t (0 = a, 1 = b)
+function blend(a, b, t) {
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ];
+}
+
+// Resolve --accent to concrete RGB. The token can be a var()/color-mix() chain,
+// which only computes on a real property — so read `color` off a throwaway span.
+function resolveAccent() {
+  if (typeof document === "undefined") return FALLBACK_ACCENT;
+  try {
+    const probe = document.createElement("span");
+    probe.style.cssText =
+      "color:var(--accent);position:absolute;opacity:0;pointer-events:none;";
+    document.body.appendChild(probe);
+    const rgb = parseColorToRgb(getComputedStyle(probe).color, FALLBACK_ACCENT);
+    document.body.removeChild(probe);
+    return rgb;
+  } catch (e) {
+    return FALLBACK_ACCENT;
+  }
+}
+
+// Empty days fade toward the card background (theme-aware via --bg-elev-1);
+// the peak level is the accent itself — so the ramp recolours with the palette.
+function buildRamp() {
+  const base =
+    typeof document !== "undefined"
+      ? parseColorToRgb(
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--bg-elev-1"
+          ),
+          FALLBACK_BASE
+        )
+      : FALLBACK_BASE;
+  const accent = resolveAccent();
+  return {
+    level0: toHex(blend(accent, base, 0.88)),
+    level1: toHex(blend(accent, base, 0.66)),
+    level2: toHex(blend(accent, base, 0.44)),
+    level3: toHex(blend(accent, base, 0.22)),
+    level4: toHex(accent),
+  };
+}
+
+// Bump a tick whenever <html data-theme|data-accent|style> changes so the ramp
+// recomputes. (style catches the inline --accent-raw a Custom colour writes.)
+function useAppearanceTick() {
+  const [tick, setTick] = useState(0);
   useEffect(() => {
     const el = document.documentElement;
-    const obs = new MutationObserver(() =>
-      setTheme(el.getAttribute("data-theme") || "dark")
-    );
-    obs.observe(el, { attributes: true, attributeFilter: ["data-theme"] });
+    const obs = new MutationObserver(() => setTick((t) => t + 1));
+    obs.observe(el, {
+      attributes: true,
+      attributeFilter: ["data-theme", "data-accent", "style"],
+    });
     return () => obs.disconnect();
   }, []);
-  return theme;
+  return tick;
 }
 
 function Github() {
   const { t } = useTranslation();
-  const theme = useThemeAttr();
+  const tick = useAppearanceTick();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const calendarTheme = useMemo(() => buildRamp(), [tick]);
 
   return (
     <div className="github-activity">
@@ -55,7 +111,7 @@ function Github() {
       <div className="glass github-activity__card">
         <GitHubCalendar
           username={GITHUB_USERNAME}
-          theme={CAL_THEMES[theme] || CAL_THEMES.dark}
+          theme={calendarTheme}
           blockSize={12}
           blockMargin={4}
           blockRadius={2}

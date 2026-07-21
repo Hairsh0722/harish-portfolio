@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import scrollToSection from "./helper/scrollToSection";
 import { requestResume, onResumeRequest } from "./helper/resumeReveal";
 import LanguageSwitcher from "./helper/LanguageSwitcher";
+import AccentSwitcher from "./helper/AccentSwitcher";
 import useFullscreen from "./helper/useFullscreen";
 
 // Labels are resolved from i18n at render time via t(`nav.${id}`).
@@ -41,14 +42,18 @@ function NavBar({ theme, onToggleTheme }) {
   const [navColour, updateNavbar] = useState(false);
   const [activeId, setActiveId] = useState("home");
   const progressRef = useRef(null);
+  const barRef = useRef(null);
   // Whole-page fullscreen (documentElement). Hidden where unsupported (iOS).
   const { isFullscreen, toggle: toggleFullscreen, supported: fsSupported } =
     useFullscreen();
 
-  // Buttery scroll-progress bar: a rAF loop eases the bar toward the current
-  // scroll target (lerp) and writes transform straight to the DOM — no React
-  // re-renders per frame. The loop parks itself once it reaches the target, so
-  // it burns zero cycles while idle.
+  // Buttery scroll-progress ring: a rAF loop eases the fill toward the current
+  // scroll target (lerp) and writes stroke-dashoffset straight onto the <rect>
+  // — no React re-renders per frame. Smoothness comes from three things: the
+  // scroll handler only reads scrollY (never scrollHeight, which would force a
+  // synchronous layout every frame); the track length is cached and refreshed
+  // off the hot path via ResizeObserver; and the stroke carries no per-frame
+  // filter. The loop parks itself once settled, so it's idle between scrolls.
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const SMOOTHING = 0.14; // lower = more languid trail, higher = snappier
@@ -57,17 +62,29 @@ function NavBar({ theme, onToggleTheme }) {
     let running = false;
     let current = 0;
     let target = 0;
+    let track = 0; // cached scrollable distance; refreshed off the scroll path
+    let lastPct = -1;
 
     const paint = () => {
-      const el = progressRef.current;
-      if (!el) return;
-      el.style.transform = `scaleX(${current})`;
-      el.setAttribute("aria-valuenow", String(Math.round(current * 100)));
+      const bar = barRef.current;
+      if (bar) bar.style.strokeDashoffset = String(1 - current);
+      // aria only needs whole percents — skip the DOM write on identical frames
+      const pct = Math.round(current * 100);
+      if (pct !== lastPct) {
+        lastPct = pct;
+        const el = progressRef.current;
+        if (el) el.setAttribute("aria-valuenow", String(pct));
+      }
+    };
+
+    // scrollHeight forces a layout flush, so it's read only here — never inside
+    // the scroll handler.
+    const measureTrack = () => {
+      track = document.documentElement.scrollHeight - window.innerHeight;
     };
 
     const measure = () => {
-      const scrolled = window.scrollY;
-      const track = document.documentElement.scrollHeight - window.innerHeight;
+      const scrolled = window.scrollY; // cheap read: no forced reflow
       updateNavbar(scrolled >= 20);
       target = track > 0 ? Math.min(scrolled / track, 1) : 0;
     };
@@ -101,22 +118,66 @@ function NavBar({ theme, onToggleTheme }) {
       }
     };
 
+    const onResize = () => {
+      measureTrack();
+      onScroll();
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    measure();
-    if (reduce) {
-      current = target;
-      paint();
-    } else {
-      start();
+    window.addEventListener("resize", onResize, { passive: true });
+
+    // Refresh the cached track when the document height changes (images loading,
+    // the resume section revealing, etc.). ResizeObserver fires off the scroll
+    // hot loop, so recomputing here costs nothing during scrolling.
+    let ro;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(onResize);
+      ro.observe(document.body);
     }
+
+    measureTrack();
+    onScroll();
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
+      if (ro) ro.disconnect();
     };
   }, []);
+
+  // Build the progress line's path: only the BOTTOM edge of the pill outline.
+  // Start at the left cap's widest point, arc down to the bottom, run the flat
+  // bottom, then arc up to the right cap. Corner radius = half the height for
+  // the stadium; a fixed 18px when the mobile menu expands the pill into a
+  // rounded card. Rebuilt on size change (ResizeObserver) and on expand.
+  useEffect(() => {
+    const svg = progressRef.current;
+    const bar = barRef.current;
+    if (!svg || !bar) return undefined;
+
+    const draw = () => {
+      const W = svg.clientWidth;
+      const H = svg.clientHeight;
+      if (!W || !H) return;
+      const rc = expand ? 18 : H / 2;
+      bar.setAttribute(
+        "d",
+        `M 0 ${H - rc} A ${rc} ${rc} 0 0 0 ${rc} ${H} ` +
+          `L ${W - rc} ${H} A ${rc} ${rc} 0 0 0 ${W} ${H - rc}`
+      );
+    };
+
+    draw();
+    let ro;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(draw);
+      ro.observe(svg);
+    }
+    return () => {
+      if (ro) ro.disconnect();
+    };
+  }, [expand]);
 
   // Scrollspy: highlight the nav item for whichever section is in view.
   useEffect(() => {
@@ -185,16 +246,35 @@ function NavBar({ theme, onToggleTheme }) {
         expand ? "is-expanded" : ""
       }`}
     >
-      <span
-        ref={progressRef}
-        className="nav-progress"
-        role="progressbar"
-        aria-label={t("nav.scrollProgress")}
-        aria-valuenow={0}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      />
       <Container className="nav-shell">
+        {/* Scroll progress = a single line that follows the pill OUTLINE
+            along its bottom edge only: it starts at the left cap, runs the
+            bottom, and curves up to the right cap, filling left->right as the
+            page scrolls. The `d` is rebuilt from the pill's live size in the
+            effect below; the rAF loop feeds progress via stroke-dashoffset
+            (pathLength="1" normalises the segment length). */}
+        <svg
+          ref={progressRef}
+          className="nav-progress"
+          role="progressbar"
+          aria-label={t("nav.scrollProgress")}
+          aria-valuenow={0}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <defs>
+            <linearGradient id="nav-progress-grad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" style={{ stopColor: "var(--accent)" }} />
+              <stop offset="100%" style={{ stopColor: "var(--accent-2)" }} />
+            </linearGradient>
+          </defs>
+          <path
+            ref={barRef}
+            className="nav-progress__bar"
+            d=""
+            pathLength="1"
+          />
+        </svg>
         <Navbar.Collapse id="responsive-navbar-nav" className="nav-menu">
           <Nav className="nav-links">
             {NAV_ITEMS.map((item) => (
@@ -244,6 +324,7 @@ function NavBar({ theme, onToggleTheme }) {
               {isFullscreen ? <FiMinimize /> : <FiMaximize />}
             </button>
           )}
+          <AccentSwitcher />
           <LanguageSwitcher />
           <a
             className="signin-btn"
@@ -259,6 +340,7 @@ function NavBar({ theme, onToggleTheme }) {
             href={`https://wa.me/${WHATSAPP_NUMBER}`}
             target="_blank"
             rel="noreferrer"
+            data-magnetic="0.4"
             aria-label={t("contact.chatWhatsApp")}
             title={t("contact.chatWhatsApp")}
           >

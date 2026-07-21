@@ -8,7 +8,7 @@ function ProjectShowcase() {
   return (
     <section className="section section--page" id="projects">
       <div className="container-x">
-        <div style={{ textAlign: "center" }}>
+        <div style={{ textAlign: "center" }} data-reveal>
           <span className="eyebrow eyebrow--center">
             {t("skills.showcase.eyebrow")}
           </span>
@@ -25,7 +25,7 @@ function ProjectShowcase() {
           </p>
         </div>
 
-        <div className="projects-grid">
+        <div className="projects-grid" data-reveal-children>
           {projects.map((p) => {
             // Project copy is translated by the project's abbr key when a
             // translation exists; otherwise the English source data is used.

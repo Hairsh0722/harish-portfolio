@@ -1,6 +1,6 @@
 import React from "react";
-import { AiFillInstagram, AiFillFacebook } from "react-icons/ai";
-import { FaLinkedinIn, FaGithub } from "react-icons/fa";
+import { AiFillFacebook } from "react-icons/ai";
+import { FaLinkedinIn, FaGithub, FaInstagram } from "react-icons/fa";
 import { Trans, useTranslation } from "react-i18next";
 
 const socials = [
@@ -17,7 +17,7 @@ const socials = [
     brand: "github",
   },
   {
-    icon: <AiFillInstagram />,
+    icon: <FaInstagram />,
     href: "https://www.instagram.com/harish_.siva",
     label: "Instagram",
     brand: "instagram",
@@ -35,8 +35,10 @@ function Connect() {
   return (
     <section className="section section--page" id="connect">
       <div className="container-x" style={{ textAlign: "center" }}>
-        <span className="eyebrow eyebrow--center">{t("connect.eyebrow")}</span>
-        <h2 className="section-heading">
+        <span className="eyebrow eyebrow--center" data-reveal>
+          {t("connect.eyebrow")}
+        </span>
+        <h2 className="section-heading" data-reveal>
           <Trans i18nKey="connect.heading">
             Find me <span className="accent">online</span>
           </Trans>
@@ -44,10 +46,11 @@ function Connect() {
         <p
           className="lead"
           style={{ maxWidth: "48ch", margin: "0 auto var(--space-6)" }}
+          data-reveal
         >
           {t("connect.lead")}
         </p>
-        <div className="social-pills">
+        <div className="social-pills" data-reveal-children>
           {socials.map((s) => (
             <a
               key={s.label}
