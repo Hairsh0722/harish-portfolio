@@ -1,6 +1,6 @@
 import React from "react";
 import { AiFillInstagram, AiFillFacebook } from "react-icons/ai";
-import { FaLinkedinIn } from "react-icons/fa";
+import { FaLinkedinIn, FaGithub } from "react-icons/fa";
 import { Trans, useTranslation } from "react-i18next";
 
 const socials = [
@@ -9,6 +9,12 @@ const socials = [
     href: "https://www.linkedin.com/in/harish-s-119b5a18a/",
     label: "LinkedIn",
     brand: "linkedin",
+  },
+  {
+    icon: <FaGithub />,
+    href: "https://github.com/Hairsh0722",
+    label: "GitHub",
+    brand: "github",
   },
   {
     icon: <AiFillInstagram />,

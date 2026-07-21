@@ -1403,6 +1403,13 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 .social-btn--facebook:hover {
   color: #1877f2;
 }
+/* GitHub is monochrome; use the theme text token so it stays visible on both
+   the dark aurora and the light theme (true brand black would vanish on dark). */
+.social-pill--github svg,
+.social-btn--github,
+.social-btn--github:hover {
+  color: var(--text-primary);
+}
 
 /* Hero visual panel */
 .hero-visual {
