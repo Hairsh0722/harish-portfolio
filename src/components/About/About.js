@@ -2,7 +2,7 @@ import React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import Aboutcard from "./AboutCard";
 import Github from "./Github";
-import avatar from "../../Assets/avatar.png";
+import avatar from "../../Assets/avatar.webp";
 
 function About() {
   const { t } = useTranslation();
@@ -28,9 +28,16 @@ function About() {
                   src={avatar}
                   alt="Harish Siva"
                   className="about-photo"
+                  width="700"
+                  height="700"
                   loading="lazy"
+                  decoding="async"
                 />
-                <span className="photo-orbit" aria-hidden="true" />
+                <span className="photo-orbits" aria-hidden="true">
+                  <span className="orbit-ring orbit-ring--1" />
+                  <span className="orbit-ring orbit-ring--2" />
+                  <span className="orbit-ring orbit-ring--3" />
+                </span>
               </div>
             </div>
             <div className="about-card">

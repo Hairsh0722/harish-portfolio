@@ -11,7 +11,6 @@ import {
 } from "react-icons/ai";
 import { CgFileDocument } from "react-icons/cg";
 import { FiSun, FiMoon, FiPhoneCall, FiMaximize, FiMinimize } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
 import { useTranslation } from "react-i18next";
 import scrollToSection from "./helper/scrollToSection";
 import { requestResume, onResumeRequest } from "./helper/resumeReveal";
@@ -28,10 +27,6 @@ const NAV_ITEMS = [
   { id: "resume", icon: <CgFileDocument /> },
   { id: "contact", icon: <AiOutlineMessage /> },
 ];
-
-// "Sign in" is styled to match the design but there's no auth backend, so it
-// opens Gmail (Google shows its sign-in page when the visitor is logged out).
-const SIGN_IN_URL = "https://mail.google.com/";
 
 // The phone CTA opens WhatsApp directly. Mirrors Contact.js.
 const WHATSAPP_NUMBER = "919551363232"; // +91 95513 63232
@@ -326,15 +321,6 @@ function NavBar({ theme, onToggleTheme }) {
           )}
           <AccentSwitcher />
           <LanguageSwitcher />
-          <a
-            className="signin-btn"
-            href={SIGN_IN_URL}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <FcGoogle aria-hidden="true" />
-            <span>{t("nav.signIn")}</span>
-          </a>
           <a
             className="nav-cta"
             href={`https://wa.me/${WHATSAPP_NUMBER}`}

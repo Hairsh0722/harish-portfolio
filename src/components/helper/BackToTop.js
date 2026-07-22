@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FiArrowUp } from "react-icons/fi";
+import { smoothScrollTo } from "./smoothScroll";
 
 /**
  * Floating "back to top" button. Hidden at the top of the page, fades in once
@@ -21,6 +22,7 @@ const BackToTop = () => {
 
   const toTop = () => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce && smoothScrollTo(0)) return;
     window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   };
 

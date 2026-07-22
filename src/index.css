@@ -35,3 +35,25 @@ body {
     scroll-behavior: auto;
   }
 }
+
+/* ===== Lenis smooth scroll (helper/smoothScroll.js) =====
+   Recommended stylesheet: Lenis toggles these classes on <html>. While
+   smoothing it forces scroll-behavior:auto (it owns the animation), lets
+   [data-lenis-prevent] regions scroll natively, and freezes the page when
+   stopped (e.g. behind a modal). */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}

@@ -49,10 +49,10 @@ const Cursor = () => {
     const render = () => {
       // dot snaps to the pointer; ring and glow trail with easing
       place(dot, target.x, target.y);
-      ringPos.x = lerp(ringPos.x, target.x, 0.22);
-      ringPos.y = lerp(ringPos.y, target.y, 0.22);
-      glowPos.x = lerp(glowPos.x, target.x, 0.12);
-      glowPos.y = lerp(glowPos.y, target.y, 0.12);
+      ringPos.x = lerp(ringPos.x, target.x, 0.4);
+      ringPos.y = lerp(ringPos.y, target.y, 0.4);
+      glowPos.x = lerp(glowPos.x, target.x, 0.22);
+      glowPos.y = lerp(glowPos.y, target.y, 0.22);
       place(ring, ringPos.x, ringPos.y);
       place(glow, glowPos.x, glowPos.y);
 

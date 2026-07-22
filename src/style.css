@@ -680,40 +680,6 @@ a:hover {
   padding: 0;
 }
 
-/* Google sign-in button — styled like the image; links out, no real auth */
-.signin-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  height: 40px;
-  padding: 0 1rem;
-  border-radius: var(--radius-pill);
-  background: #17131f;
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  border: 1px solid transparent;
-  transition: transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
-}
-.signin-btn:hover {
-  color: #fff;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-.signin-btn svg {
-  font-size: 1.15rem;
-  background: #fff;
-  border-radius: 50%;
-  padding: 1px;
-}
-.signin-btn:focus-visible {
-  outline: 2px solid var(--accent-2);
-  outline-offset: 2px;
-}
-
 /* purple round contact CTA — scrolls to the Contact section */
 .nav-cta {
   display: inline-flex;
@@ -748,7 +714,7 @@ a:hover {
 
 @media (max-width: 991.98px) {
   /* Mobile (matches the reference): the hamburger — an X when open — leads the
-     row, the full control cluster (toggle, EN, Sign in, phone) stays visible,
+     row, the full control cluster (toggle, EN, phone) stays visible,
      and the links drop into the card below. Everything is compacted so the
      whole control row fits on ONE line instead of wrapping. */
   .nav-aurora {
@@ -762,9 +728,10 @@ a:hover {
   }
   .nav-actions {
     gap: 6px;
-    margin-left: auto; /* push the cluster to the pill's trailing edge */
+    flex: 1; /* fill the row after the hamburger — no dead space in between */
+    margin-left: var(--space-2);
     flex-wrap: wrap; /* never clip: drop to a second row if a phone is too narrow */
-    justify-content: flex-end;
+    justify-content: space-between; /* spread the controls evenly across the row */
   }
   .nav-actions .nav-divider {
     display: none;
@@ -784,12 +751,6 @@ a:hover {
     gap: 0.3rem;
     font-size: 0.8rem;
   }
-  .signin-btn {
-    height: 36px;
-    padding: 0 0.65rem;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-  }
   .nav-link__icon {
     display: inline-flex;
     align-items: center;
@@ -806,9 +767,9 @@ a:hover {
 }
 
 @media (max-width: 480px) {
-  /* Phones are too narrow for every label at once, so the accent name and the
-     "Sign in" text collapse to their icons and the (desktop-oriented) fullscreen
-     toggle drops out — keeping the control row on a single, uncramped line. */
+  /* Phones are too narrow for every label at once, so the accent name collapses
+     to its icon and the (desktop-oriented) fullscreen toggle drops out — keeping
+     the control row on a single, uncramped line. */
   .accent-pill {
     padding: 0 0.4rem;
     gap: 0.2rem;
@@ -817,15 +778,6 @@ a:hover {
     display: none;
   }
   .nav-aurora .fullscreen-toggle {
-    display: none;
-  }
-  .signin-btn {
-    width: 36px;
-    padding: 0;
-    gap: 0;
-    justify-content: center;
-  }
-  .signin-btn span {
     display: none;
   }
 }
@@ -1505,34 +1457,55 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 }
 
 @media (max-width: 991.98px) {
-  /* links become a list inside the same card, below the control row */
+  /* links become a compact 2-column grid of chips inside the same card, below
+     the control row — roughly half the height of the old single-column list */
   .nav-aurora .navbar-collapse {
     margin-top: var(--space-2);
     padding-top: var(--space-2);
     border-top: 1px solid var(--glass-border);
+    /* Keep the open menu the SAME width as the collapsed pill. The shell is a
+       shrink-to-fit, flex-wrap pill; its intrinsic width is the sum of ALL
+       children on one hypothetical line, so the dropdown grid would otherwise
+       push the pill out to its max-width when the menu opens. width:0 drops the
+       menu out of that intrinsic-width sum, and min-width:100% then stretches it
+       to fill the pill the control row defines — so opening no longer widens it. */
+    width: 0;
+    min-width: 100%;
   }
   .nav-aurora .navbar-collapse.show .navbar-nav {
     animation: nav-menu-in var(--dur-med) var(--ease-out);
   }
+  /* 3 columns, flowing DOWN each column so consecutive pairs stack together:
+     Home/About in col 1, Skills/Projects in col 2, Resume/Contact in col 3 */
   .nav-aurora .navbar-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, auto);
+    grid-auto-flow: column;
+    gap: 6px;
     align-items: stretch;
-    gap: 0;
+    width: 100%;
+  }
+  .nav-aurora .nav-item {
     width: 100%;
   }
   .nav-aurora .nav-link {
     display: flex !important;
+    align-items: center;
     width: 100%;
-    padding: 0.85rem 0.6rem !important;
-    gap: 0.7rem;
+    padding: 0.55rem 0.45rem !important;
+    gap: 0.4rem;
+    font-size: 0.8rem !important;
     border-radius: var(--radius-sm);
-  }
-  .nav-aurora .nav-item:not(:last-child) .nav-link {
-    border-bottom: 1px solid var(--glass-border);
-    border-radius: 0;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
   }
   .nav-aurora .nav-link svg {
-    font-size: 1.15em;
+    font-size: 1.1em;
     color: var(--accent);
+  }
+  .nav-aurora .nav-link.active {
+    border-color: var(--glass-border-strong);
   }
   .nav-aurora .nav-link.active::after {
     display: none;
@@ -1705,25 +1678,137 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
    (whole button), overriding the accent default in both themes. */
 .social-pill--linkedin svg,
 .social-btn--linkedin,
-.social-btn--linkedin:hover {
+.social-btn--linkedin:hover,
+.orbit-node--linkedin .orbit-node__chip svg {
   color: #0a66c2;
 }
 .social-pill--instagram svg,
 .social-btn--instagram,
-.social-btn--instagram:hover {
+.social-btn--instagram:hover,
+.orbit-node--instagram .orbit-node__chip svg {
   color: #e4405f;
 }
 .social-pill--facebook svg,
 .social-btn--facebook,
-.social-btn--facebook:hover {
+.social-btn--facebook:hover,
+.orbit-node--facebook .orbit-node__chip svg {
   color: #1877f2;
 }
 /* GitHub is monochrome; use the theme text token so it stays visible on both
    the dark aurora and the light theme (true brand black would vanish on dark). */
 .social-pill--github svg,
 .social-btn--github,
-.social-btn--github:hover {
+.social-btn--github:hover,
+.orbit-node--github .orbit-node__chip svg {
   color: var(--text-primary);
+}
+
+/* ---- Connect: orbital social ring ----
+   Avatar centred inside a dashed ring; social links sit on the ring at fixed
+   angles (see Connect.js). The ring drifts slowly; nodes stay upright. */
+.orbit {
+  --orbit-size: clamp(236px, 54vw, 332px);
+  --orbit-radius: calc(var(--orbit-size) / 2);
+  position: relative;
+  width: var(--orbit-size);
+  height: var(--orbit-size);
+  margin: var(--space-4) auto 0;
+}
+.orbit-ring {
+  position: absolute;
+  inset: 0;
+  border: 1.5px dashed var(--glass-border-strong);
+  border-radius: 50%;
+  opacity: 0.7;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .orbit-ring {
+    animation: orbit-spin 44s linear infinite;
+  }
+}
+@keyframes orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.orbit-avatar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(128px, 34vw, 196px);
+  height: clamp(128px, 34vw, 196px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface-strong);
+  border: 1px solid var(--glass-border-strong);
+  box-shadow: var(--shadow-accent), 0 0 0 6px var(--surface);
+}
+.orbit-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Portrait photo — bias the square crop toward the face (upper third). */
+  object-position: center 28%;
+}
+.orbit-node {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3.35rem;
+  height: 3.35rem;
+  margin: -1.675rem 0 0 -1.675rem;
+  transform: rotate(var(--a)) translateY(calc(-1 * var(--orbit-radius)))
+    rotate(calc(-1 * var(--a)));
+  border-radius: 50%;
+}
+.orbit-node:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 3px;
+}
+.orbit-node__chip {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--surface-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  transition: transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+.orbit-node__chip svg {
+  font-size: 1.4rem;
+}
+.orbit-node:hover .orbit-node__chip,
+.orbit-node:focus-visible .orbit-node__chip {
+  transform: scale(1.12);
+  border-color: var(--glass-border-strong);
+  box-shadow: var(--shadow-accent);
+}
+.orbit-node__tip {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 50%;
+  transform: translateX(-50%) translateY(3px);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.orbit-node:hover .orbit-node__tip,
+.orbit-node:focus-visible .orbit-node__tip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* Hero visual panel */
@@ -2012,26 +2097,82 @@ html[data-theme="light"] .tk-op { color: #be185d; }
 .about-photo-frame:hover .about-photo {
   transform: scale(1.045);
 }
-/* a single accent spark orbiting the ring */
-.photo-orbit {
+/* Concentric orbit rings — thin gradient arcs, each with a glowing dot
+   trailing around it, at different radii, speeds and directions. Colours use
+   the accent tokens, so they recolour with the palette switcher. */
+.photo-orbits {
   position: absolute;
-  inset: -7px;
+  inset: 0;
   border-radius: 50%;
   pointer-events: none;
   z-index: 3;
-  animation: orbit-spin 7s linear infinite;
 }
-.photo-orbit::before {
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  --thick: 2px;
+  --dot: 11px;
+  --trail: var(--accent);
+}
+/* The thin arc lives on ::before with its own mask, so the leading dot on
+   ::after is NOT clipped by that mask (that was hiding the comet head). The
+   conic gradient fades in and ramps up to full brightness at the dot (top). */
+.orbit-ring::before {
   content: "";
   position: absolute;
-  top: -5px;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  margin-left: -6px;
+  inset: 0;
   border-radius: 50%;
-  background: var(--accent-2);
-  box-shadow: 0 0 14px 2px var(--accent-2-glow);
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 150deg,
+    color-mix(in srgb, var(--trail) 35%, transparent) 300deg,
+    var(--trail) 358deg,
+    transparent 360deg
+  );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    #0000 calc(100% - var(--thick)),
+    #000 calc(100% - var(--thick))
+  );
+  mask: radial-gradient(
+    farthest-side,
+    #0000 calc(100% - var(--thick)),
+    #000 calc(100% - var(--thick))
+  );
+}
+/* the bright leading glow dot — the "comet head" at the end of the arc */
+.orbit-ring::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--dot);
+  height: var(--dot);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px 1px #fff, 0 0 12px 3px var(--trail),
+    0 0 22px 6px color-mix(in srgb, var(--trail) 55%, transparent);
+}
+/* Radii kept tight so the rings stay inside the glass card (no overflow). */
+.orbit-ring--1 {
+  inset: -5%;
+  --trail: var(--accent-2);
+  --dot: 11px;
+  animation: orbit-cw 16s linear infinite;
+}
+.orbit-ring--2 {
+  inset: -11%;
+  --trail: var(--accent);
+  --dot: 10px;
+  animation: orbit-ccw 24s linear infinite;
+}
+.orbit-ring--3 {
+  inset: -16%;
+  --thick: 1.5px;
+  --trail: var(--aurora-magenta);
+  --dot: 9px;
+  animation: orbit-cw 34s linear infinite;
 }
 @keyframes ring-spin {
   to {
@@ -2047,9 +2188,14 @@ html[data-theme="light"] .tk-op { color: #be185d; }
     transform: translateY(-9px);
   }
 }
-@keyframes orbit-spin {
+@keyframes orbit-cw {
   to {
     transform: rotate(360deg);
+  }
+}
+@keyframes orbit-ccw {
+  to {
+    transform: rotate(-360deg);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2059,8 +2205,34 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   .about-photo-frame:hover .about-photo {
     transform: none;
   }
-  .photo-orbit {
+  .photo-orbits {
     display: none;
+  }
+}
+
+/* Keep the orbit on phones but fit it INSIDE the stacked card:
+   - a slightly smaller frame leaves room for the rings on narrow screens
+   - extra vertical padding gives the rings room so they don't poke above the
+     card's top edge (the photo is the first row once the grid stacks)
+   - tighter radii keep the outer ring clear of the card's side edges */
+@media (max-width: 600px) {
+  .about-photo-frame {
+    width: min(52vw, 220px);
+  }
+  .about-visual {
+    padding-block: clamp(26px, 8vw, 40px);
+  }
+  .orbit-ring--1 {
+    inset: -5%;
+    --dot: 9px;
+  }
+  .orbit-ring--2 {
+    inset: -10%;
+    --dot: 8px;
+  }
+  .orbit-ring--3 {
+    inset: -15%;
+    --dot: 8px;
   }
 }
 

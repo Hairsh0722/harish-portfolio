@@ -17,20 +17,30 @@ import Reveal from "./components/helper/Reveal";
 import BackToTop from "./components/helper/BackToTop";
 import AiAssistant from "./components/Assistant/AiAssistant";
 import useTheme from "./components/helper/useTheme";
+import {
+  startSmoothScroll,
+  stopSmoothScroll,
+} from "./components/helper/smoothScroll";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import "./style.css";
 
 function App() {
-  const [load, upadateLoad] = useState(true);
+  const [load, setLoad] = useState(true);
   const [theme, toggleTheme] = useTheme();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      upadateLoad(false);
+      setLoad(false);
     }, 1200);
 
     return () => clearTimeout(timer);
+  }, []);
+
+  // Lenis smooth scrolling for the whole page (matches the reference site).
+  useEffect(() => {
+    startSmoothScroll();
+    return () => stopSmoothScroll();
   }, []);
 
   return (

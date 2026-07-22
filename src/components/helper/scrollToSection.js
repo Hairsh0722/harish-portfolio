@@ -1,5 +1,7 @@
 // Shared smooth-scroll helper for the single-page layout.
-// Respects prefers-reduced-motion: falls back to an instant jump.
+// Routes through Lenis (buttery smooth) when active; otherwise falls back to
+// native scrolling. Respects prefers-reduced-motion via an instant jump.
+import { smoothScrollTo } from "./smoothScroll";
 
 export const SECTION_IDS = [
   "home",
@@ -19,18 +21,22 @@ export function prefersReducedMotion() {
 }
 
 export default function scrollToSection(id) {
-  const behavior = prefersReducedMotion() ? "auto" : "smooth";
+  const reduce = prefersReducedMotion();
+  const behavior = reduce ? "auto" : "smooth";
 
   // "home" (and anything unresolved) means the very top of the page.
   if (!id || id === "home" || id === "top") {
+    if (!reduce && smoothScrollTo(0)) return;
     window.scrollTo({ top: 0, behavior });
     return;
   }
 
   const el = document.getElementById(id);
   if (el) {
+    if (!reduce && smoothScrollTo(el, { section: true })) return;
     el.scrollIntoView({ behavior, block: "start" });
   } else {
+    if (!reduce && smoothScrollTo(0)) return;
     window.scrollTo({ top: 0, behavior });
   }
 }

@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import pdf from "../../Assets/harish_resume_new.pdf";
 import { AiOutlineDownload, AiOutlineFullscreen, AiOutlineClose } from "react-icons/ai";
-import { Document, Page, pdfjs } from "react-pdf";
 import { Trans, useTranslation } from "react-i18next";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import scrollToSection from "../helper/scrollToSection";
 import { onResumeRequest } from "../helper/resumeReveal";
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+import { pauseSmoothScroll, resumeSmoothScroll } from "../helper/smoothScroll";
+
+// Lazy so react-pdf / pdf.js stay out of the initial bundle — the viewer only
+// downloads when the resume is actually revealed.
+const ResumePdf = lazy(() => import("./ResumePdf"));
 
 function ResumeNew() {
   const { t } = useTranslation();
@@ -47,12 +49,15 @@ function ResumeNew() {
     if (!fullscreen) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Pause Lenis so it doesn't fight the body-scroll lock behind the overlay.
+    pauseSmoothScroll();
     const onKey = (e) => {
       if (e.key === "Escape") setFullscreen(false);
     };
     document.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prevOverflow;
+      resumeSmoothScroll();
       document.removeEventListener("keydown", onKey);
     };
   }, [fullscreen]);
@@ -83,19 +88,15 @@ function ResumeNew() {
           </a>
         </div>
 
-        <div className="glass resume-wrap">
+        <div className="glass resume-wrap" data-lenis-prevent>
           {inView ? (
-            <Document
-              file={pdf}
-              loading={<p className="lead">{t("resume.loading")}</p>}
-            >
-              <Page
-                pageNumber={1}
+            <Suspense fallback={<p className="lead">{t("resume.loading")}</p>}>
+              <ResumePdf
+                file={pdf}
                 width={pageWidth}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
+                loading={<p className="lead">{t("resume.loading")}</p>}
               />
-            </Document>
+            </Suspense>
           ) : (
             <p className="lead">{t("resume.loading")}</p>
           )}
@@ -133,18 +134,14 @@ function ResumeNew() {
               <AiOutlineClose />
             </button>
           </div>
-          <div className="resume-overlay__doc">
-            <Document
-              file={pdf}
-              loading={<p className="lead">{t("resume.loading")}</p>}
-            >
-              <Page
-                pageNumber={1}
+          <div className="resume-overlay__doc" data-lenis-prevent>
+            <Suspense fallback={<p className="lead">{t("resume.loading")}</p>}>
+              <ResumePdf
+                file={pdf}
                 width={fsPageWidth}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
+                loading={<p className="lead">{t("resume.loading")}</p>}
               />
-            </Document>
+            </Suspense>
           </div>
         </div>
       )}

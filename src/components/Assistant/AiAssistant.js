@@ -180,7 +180,13 @@ function AiAssistant() {
         </header>
 
         {/* ---------------- TRANSCRIPT ---------------- */}
-        <div className="ai-log" ref={scrollRef} role="log" aria-live="polite">
+        <div
+          className="ai-log"
+          ref={scrollRef}
+          role="log"
+          aria-live="polite"
+          data-lenis-prevent
+        >
           {messages.map((m) => (
             <div key={m.id} className={`ai-row ai-row--${m.role}`}>
               <span className="ai-row__avatar" aria-hidden="true">

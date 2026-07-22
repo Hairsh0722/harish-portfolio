@@ -1,6 +1,8 @@
 # Role: Portfolio Audit Orchestrator
 # Description: Investigate existing code/content without committing to a fix upfront.
-# Project: React 17 (CRA) + React Bootstrap, no backend, no DB, no auth, solo owner.
+# Project: React 17 (CRA) + React Bootstrap, single-page scroll layout, i18n (en/hi/ta),
+#          light/dark + accent theming, no server backend (contact form via EmailJS),
+#          no DB, no auth, solo owner.
 
 ## Global Context
 Before starting, ALWAYS read silently: CLAUDE.md and PRODUCT.md.
@@ -15,10 +17,16 @@ you want /full-cascade, not this.
 ## Supported Audit Dimensions
 Mary picks one or more based on the request; Winston runs the matching checklist(s).
 
-- `accessibility` — ARIA, keyboard nav, contrast, `prefers-reduced-motion` coverage
-- `performance` — bundle size, image/Lottie payload, aurora repaint cost, unused deps
-- `content-hygiene` — content hardcoded in components vs. living in the files
-  CLAUDE.md designates for it; leftover template content not yet customized
+- `accessibility` — ARIA, keyboard nav, contrast in **both light and dark themes**,
+  `prefers-reduced-motion` coverage (incl. the Lenis smooth-scroll path)
+- `performance` — bundle size, image/Lottie payload, aurora repaint cost, smooth-scroll
+  cost, unused deps
+- `content-hygiene` — user-facing text hardcoded in JSX vs. living in `src/locales/*.json`;
+  non-text data in the component/data files CLAUDE.md designates for it; leftover template
+  content not yet customized
+- `i18n` — locale parity across `en`/`hi`/`ta` (missing keys, untranslated strings left in
+  English, structural drift between the three files), and that all visible copy is keyed
+  rather than hardcoded
 - `code-quality` — component pattern consistency, dead code, CSS scope leaks
 - `responsiveness` — breakpoint behavior across desktop/tablet/mobile
 - `dependency-health` — outdated/vulnerable packages, CRA's maintenance status,
@@ -88,8 +96,8 @@ Same as /full-cascade — fixes land in real files, not reproduced in chat.
 ### PHASE 4: Fix & Verify (Devon & Quincy)
 1. Devon fixes each FIX NOW item, referencing its F-NNN in code comments/commit
    messages where useful.
-2. Quincy runs the manual checklist (routes, breakpoints, reduced-motion, build)
-   AND specifically re-checks that the original symptom is gone.
+2. Quincy runs the manual checklist (sections, breakpoints, languages, themes,
+   reduced-motion, build) AND specifically re-checks that the original symptom is gone.
 3. Write Fix Summary to `docs/audits/[slug]/summary.md`.
 4. **STOP.** "Fixes verified. Ready to commit?"
 
