@@ -28,29 +28,30 @@ export default function Reveal({ ready = true }) {
     // ---- 1. Scroll reveal --------------------------------------------------
     const STAGGER = 90; // ms between staggered children
 
-    // Show a staggered group; hiding resets the delay so children fade out
-    // together and re-stagger cleanly the next time they scroll into view.
-    const toggleGroup = (parent, show) => {
+    // Reveal a staggered group of children in sequence.
+    const showGroup = (parent) => {
       Array.from(parent.children).forEach((kid, i) => {
-        kid.style.transitionDelay = show ? `${i * STAGGER}ms` : "0ms";
-        kid.classList.toggle("is-revealed", show);
+        kid.style.transitionDelay = `${i * STAGGER}ms`;
+        kid.classList.add("is-revealed");
       });
     };
 
-    // Re-triggering observer: reveal on enter, hide on leave — so scrolling
-    // back up hides the elements and scrolling down replays the animation.
+    // Reveal-once observer: animate on first enter, then stop watching that
+    // element. Leave events are ignored, so scrolling back up never hides or
+    // replays the animation — once revealed, an element stays revealed.
     const io = new IntersectionObserver(
-      (entries) => {
+      (entries, observer) => {
         entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
           const el = entry.target;
-          const show = entry.isIntersecting;
           if (el.hasAttribute("data-reveal-children")) {
-            toggleGroup(el, show);
+            showGroup(el);
           } else {
             const delay = el.getAttribute("data-reveal-delay");
-            if (delay) el.style.transitionDelay = show ? `${delay}ms` : "0ms";
-            el.classList.toggle("is-revealed", show);
+            if (delay) el.style.transitionDelay = `${delay}ms`;
+            el.classList.add("is-revealed");
           }
+          observer.unobserve(el);
         });
       },
       { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
