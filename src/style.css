@@ -3342,7 +3342,15 @@ html.theme-vt::view-transition-new(root) {
 @supports (animation-timeline: scroll()) {
   @media (prefers-reduced-motion: no-preference) {
     .hero {
-      animation: hero-recede linear both;
+      /* NOTE: use animation-* longhands, NOT the `animation` shorthand.
+         The shorthand resets `animation-timeline` to `auto`, and cssnano
+         reorders declarations during the production build so the shorthand
+         can land after the timeline — which turned this into a 0s time
+         animation that snapped to the faded end-state (dim hero). Longhands
+         are order-independent, so the minifier can't break it. */
+      animation-name: hero-recede;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
       animation-timeline: scroll(root block);
       animation-range: 0 92vh;
     }
@@ -3407,7 +3415,11 @@ html.theme-vt::view-transition-new(root) {
 @supports (animation-timeline: scroll()) {
   @media (prefers-reduced-motion: no-preference) {
     .scroll-cue {
-      animation: scroll-cue-fade linear both;
+      /* Longhands, not the `animation` shorthand — see the .hero note above:
+         the shorthand resets animation-timeline and cssnano reorders it. */
+      animation-name: scroll-cue-fade;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
       animation-timeline: scroll(root block);
       animation-range: 0 16vh;
     }
