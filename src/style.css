@@ -461,6 +461,10 @@ a:hover {
   align-items: center;
   gap: var(--space-2);
   flex: 0 0 auto;
+  /* Same stacking fix as .navbar-brand: keep the control cluster above the
+     mobile menu's full-screen overlay instead of getting painted under it. */
+  position: relative;
+  z-index: 3;
 }
 .nav-divider {
   width: 1px;
@@ -726,12 +730,21 @@ a:hover {
     padding: 0.35rem 0.45rem;
     flex-wrap: wrap;
   }
+  /* Trim the wordmark so the hamburger + full control cluster fit on one line
+     on typical phones instead of forcing the phone CTA to wrap. */
+  .nav-aurora .navbar-brand {
+    font-size: 1.05rem;
+    padding: 0.2rem 0.25rem;
+  }
   .nav-actions {
     gap: 6px;
+    row-gap: 8px;
     flex: 1; /* fill the row after the hamburger — no dead space in between */
     margin-left: var(--space-2);
     flex-wrap: wrap; /* never clip: drop to a second row if a phone is too narrow */
-    justify-content: space-between; /* spread the controls evenly across the row */
+    /* Right-align the cluster so, if it does wrap, the extra control drops to a
+       neat second row flush with the others instead of floating mid-pill. */
+    justify-content: flex-end;
   }
   .nav-actions .nav-divider {
     display: none;
@@ -779,6 +792,9 @@ a:hover {
   }
   .nav-aurora .fullscreen-toggle {
     display: none;
+  }
+  .nav-aurora .navbar-brand {
+    font-size: 0.98rem;
   }
 }
 
@@ -1011,6 +1027,104 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 @media (max-width: 768px) {
   .skill-stats {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+}
+
+/* =============================================================
+   EDUCATION  (timeline-style degree/school cards)
+   ============================================================= */
+.edu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 460px));
+  justify-content: center;
+  gap: var(--space-4);
+  margin: var(--space-6) auto 0;
+  text-align: left;
+}
+.edu-card {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(22px, 2.8vw, 32px);
+}
+.edu-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.edu-card__icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  font-size: 1.4rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow-accent);
+}
+.edu-card__period {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft, rgba(124, 58, 237, 0.12));
+  border: 1px solid var(--glass-border);
+  white-space: nowrap;
+}
+.edu-card__body {
+  min-width: 0;
+}
+.edu-card__degree {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1.25;
+  color: var(--text-primary);
+  margin: 0;
+}
+.edu-card__field {
+  margin: 2px 0 0;
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.edu-card__institution {
+  margin: var(--space-2) 0 0;
+  font-weight: 600;
+  color: var(--accent);
+}
+.edu-card__location {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.edu-card__desc {
+  margin: var(--space-3) 0 0;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.edu-card__grade {
+  align-self: flex-start;
+  margin-top: var(--space-4);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft, rgba(124, 58, 237, 0.12));
+  border: 1px solid var(--glass-border);
+}
+@media (max-width: 768px) {
+  .edu-grid {
+    grid-template-columns: 1fr;
     gap: var(--space-3);
   }
 }
@@ -1367,13 +1481,42 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   stroke-dashoffset: 1; /* start empty; driven inline by the loop */
 }
 .nav-aurora .navbar-brand {
+  /* strip default <button> chrome so it reads as plain themed wordmark */
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0.25rem 0.35rem;
+  margin: 0;
+  cursor: pointer;
+  /* Stay above the mobile menu's full-screen overlay (position:fixed, see
+     .navbar-collapse.show below) — an unpositioned sibling would otherwise
+     paint underneath a positioned one regardless of DOM order. */
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.25rem;
+  line-height: 1;
   letter-spacing: -0.01em;
   color: var(--text-primary) !important;
   align-items: center;
   gap: 0.5rem;
+  transition: color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+.nav-aurora .navbar-brand:hover {
+  color: var(--accent) !important;
+}
+.nav-aurora .navbar-brand:focus {
+  outline: none;
+}
+.nav-aurora .navbar-brand:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 .nav-aurora .navbar-brand .dot {
   color: var(--accent);
@@ -1433,6 +1576,10 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   border-radius: var(--radius-sm) !important;
   background: var(--surface) !important;
   padding: 0.4rem 0.55rem !important;
+  /* Same stacking fix as .navbar-brand: keep the X control above the mobile
+     menu's full-screen overlay instead of getting painted under it. */
+  position: relative;
+  z-index: 3;
 }
 .nav-aurora .navbar-toggler:focus {
   box-shadow: 0 0 0 3px var(--accent-glow) !important;
@@ -1457,8 +1604,8 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 }
 
 @media (max-width: 991.98px) {
-  /* links become a compact 2-column grid of chips inside the same card, below
-     the control row — roughly half the height of the old single-column list */
+  /* links become a compact 3-column grid of chips inside the same card, below
+     the control row — roughly half the height of a single-column list */
   .nav-aurora .navbar-collapse {
     margin-top: var(--space-2);
     padding-top: var(--space-2);
@@ -1476,7 +1623,8 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
     animation: nav-menu-in var(--dur-med) var(--ease-out);
   }
   /* 3 columns, flowing DOWN each column so consecutive pairs stack together:
-     Home/About in col 1, Skills/Projects in col 2, Resume/Contact in col 3 */
+     e.g. About/Education in col 1, Skills/Projects in col 2, Resume/Contact
+     in col 3. */
   .nav-aurora .navbar-nav {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1528,11 +1676,13 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
    ============================================================= */
 .hero {
   position: relative;
-  min-height: 100vh;
+  /* Content-driven height: was min-height:100vh, which left a large empty band
+     below the centered content (grew after the hero social row was removed). */
+  min-height: auto;
   display: flex;
   align-items: center;
-  padding-top: calc(var(--nav-h) + var(--space-6));
-  padding-bottom: var(--space-6);
+  padding-top: calc(var(--nav-h) + var(--space-7));
+  padding-bottom: var(--space-7);
 }
 .hero-grid {
   display: grid;
@@ -1557,11 +1707,12 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
    so the name reads as the hero. Its own line — the name follows below. */
 .hero-greeting {
   display: block;
+  font-family: var(--font-mono);
   font-weight: 500;
-  font-size: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+  font-size: clamp(1.35rem, 0.95rem + 1.8vw, 2rem);
   line-height: 1.2;
   letter-spacing: -0.01em;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   margin-bottom: var(--space-2);
 }
 .hero-name .accent {
@@ -1678,137 +1829,212 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
    (whole button), overriding the accent default in both themes. */
 .social-pill--linkedin svg,
 .social-btn--linkedin,
-.social-btn--linkedin:hover,
-.orbit-node--linkedin .orbit-node__chip svg {
+.social-btn--linkedin:hover {
   color: #0a66c2;
 }
 .social-pill--instagram svg,
 .social-btn--instagram,
-.social-btn--instagram:hover,
-.orbit-node--instagram .orbit-node__chip svg {
+.social-btn--instagram:hover {
   color: #e4405f;
 }
 .social-pill--facebook svg,
 .social-btn--facebook,
-.social-btn--facebook:hover,
-.orbit-node--facebook .orbit-node__chip svg {
+.social-btn--facebook:hover {
   color: #1877f2;
 }
 /* GitHub is monochrome; use the theme text token so it stays visible on both
    the dark aurora and the light theme (true brand black would vanish on dark). */
 .social-pill--github svg,
 .social-btn--github,
-.social-btn--github:hover,
-.orbit-node--github .orbit-node__chip svg {
+.social-btn--github:hover {
   color: var(--text-primary);
 }
 
-/* ---- Connect: orbital social ring ----
-   Avatar centred inside a dashed ring; social links sit on the ring at fixed
-   angles (see Connect.js). The ring drifts slowly; nodes stay upright. */
-.orbit {
-  --orbit-size: clamp(236px, 54vw, 332px);
-  --orbit-radius: calc(var(--orbit-size) / 2);
+/* Connect section: a fixed-dark "network" card — deliberately opts out of
+   theme tokens (like .code-card) because the whole point is the dark
+   constellation backdrop behind the orbiting photo; it would lose its look
+   entirely on the light theme otherwise. */
+.connect-orbit-card {
   position: relative;
-  width: var(--orbit-size);
-  height: var(--orbit-size);
-  margin: var(--space-4) auto 0;
+  width: 100%;
+  max-width: 620px;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto var(--space-6);
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
 }
-.orbit-ring {
+@media (min-width: 620px) {
+  .connect-orbit-card {
+    aspect-ratio: 8 / 5;
+  }
+}
+.connect-orbit-card__field {
   position: absolute;
   inset: 0;
-  border: 1.5px dashed var(--glass-border-strong);
-  border-radius: 50%;
-  opacity: 0.7;
+  width: 100%;
+  height: 100%;
+  opacity: 0.85;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .orbit-ring {
-    animation: orbit-spin 44s linear infinite;
-  }
-}
-@keyframes orbit-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.orbit-avatar {
+/* Square stage that holds the ring, photo and icon nodes. Keeping it square
+   (and centred in the possibly-landscape card) means the nodes can be placed
+   on the ring with equal x/y offsets — so the alignment no longer depends on
+   the card's aspect ratio and holds identically on mobile and desktop. */
+.connect-orbit-stage {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(128px, 34vw, 196px);
-  height: clamp(128px, 34vw, 196px);
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  transform: translate(-50%, -50%);
+}
+.connect-ring-base {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70%;
+  aspect-ratio: 1 / 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  overflow: hidden;
-  background: var(--surface-strong);
-  border: 1px solid var(--glass-border-strong);
-  box-shadow: var(--shadow-accent), 0 0 0 6px var(--surface);
+  border: 1px solid rgba(170, 195, 255, 0.28);
 }
-.orbit-avatar img {
+.connect-photo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25), 0 0 40px 10px rgba(120, 160, 255, 0.35),
+    0 0 90px 24px rgba(160, 120, 255, 0.22);
+}
+.connect-photo img {
   display: block;
   width: 100%;
   height: 100%;
+  border-radius: inherit;
   object-fit: cover;
-  /* Portrait photo — bias the square crop toward the face (upper third). */
-  object-position: center 28%;
 }
-.orbit-node {
+/* The comet ring reuses .photo-orbits / .orbit-ring (see About.js / Home.js)
+   for its animation — only the size differs (inset pushed out much further
+   so the ring clears the smaller connect-photo circle). */
+.connect-photo .photo-orbits .orbit-ring--connect {
+  inset: -47%;
+  --thick: 1.5px;
+  --dot: 12px;
+  --trail: #7dd3fc;
+  animation: orbit-cw 16s linear infinite;
+}
+
+/* Icon nodes: dark badges docked on the ring, positioned to match the
+   reference layout (percentages measured against the 8:5 card). */
+.connect-node {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 3.35rem;
-  height: 3.35rem;
-  margin: -1.675rem 0 0 -1.675rem;
-  transform: rotate(var(--a)) translateY(calc(-1 * var(--orbit-radius)))
-    rotate(calc(-1 * var(--a)));
+  top: var(--node-y);
+  left: var(--node-x);
+  width: clamp(46px, 13%, 64px);
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
-}
-.orbit-node:focus-visible {
-  outline: 2px solid var(--accent-2);
-  outline-offset: 3px;
-}
-.orbit-node__chip {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: var(--surface-strong);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  background: radial-gradient(circle at 34% 30%, #242c50, #0a0c1a 78%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  z-index: 4;
+  transform: translate(-50%, -50%);
   transition: transform var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
+    box-shadow var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 }
-.orbit-node__chip svg {
-  font-size: 1.4rem;
+.connect-node:hover,
+.connect-node:focus-visible {
+  transform: translate(-50%, -50%) scale(1.12);
+  border-color: rgba(255, 255, 255, 0.24);
 }
-.orbit-node:hover .orbit-node__chip,
-.orbit-node:focus-visible .orbit-node__chip {
-  transform: scale(1.12);
-  border-color: var(--glass-border-strong);
-  box-shadow: var(--shadow-accent);
+.connect-node:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 2px;
 }
-.orbit-node__tip {
-  position: absolute;
-  top: calc(100% + 0.4rem);
-  left: 50%;
-  transform: translateX(-50%) translateY(3px);
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
+.connect-node--linkedin svg {
+  color: #4da3ff;
 }
-.orbit-node:hover .orbit-node__tip,
-.orbit-node:focus-visible .orbit-node__tip {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+.connect-node--instagram svg {
+  color: #f472a0;
+}
+.connect-node--github svg {
+  color: #e7e9f5;
+}
+.connect-node--facebook svg {
+  color: #4d8dff;
+}
+/* Instagram reads as the "active" node in the reference — a soft magenta halo. */
+.connect-node--instagram {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 22px 4px rgba(244, 114, 160, 0.35);
+}
+/* Nodes sit on the ring (radius 35% of the square stage) at the four 45°
+   diagonals: offset = 35% × cos45° ≈ 24.75% from centre → 25.25% / 74.75%.
+   Equal x/y offsets on a square stage keep them exactly on the ring at every
+   viewport width. */
+.connect-node--linkedin {
+  --node-x: 25.25%;
+  --node-y: 25.25%;
+}
+.connect-node--instagram {
+  --node-x: 74.75%;
+  --node-y: 25.25%;
+}
+.connect-node--github {
+  --node-x: 25.25%;
+  --node-y: 74.75%;
+}
+.connect-node--facebook {
+  --node-x: 74.75%;
+  --node-y: 74.75%;
+}
+
+/* Light theme: the orbit card is a "night sky" scene built for a dark
+   backdrop (white stars, pale-blue lines). On light mode swap the near-black
+   gradient for a soft light panel and re-tint the star field so the strokes
+   and dots stay visible instead of disappearing against the lighter surface. */
+html[data-theme="light"] .connect-orbit-card {
+  background: transparent;
+  box-shadow: none;
+}
+html[data-theme="light"] .connect-orbit-card__field line {
+  stroke: rgba(124, 58, 237, 0.26);
+}
+html[data-theme="light"] .connect-orbit-card__field circle {
+  fill: rgba(124, 58, 237, 0.38);
+}
+html[data-theme="light"] .connect-orbit-card__field g:last-of-type circle {
+  fill: var(--accent-2);
+}
+html[data-theme="light"] .connect-ring-base {
+  border-color: rgba(124, 58, 237, 0.28);
+}
+/* The icon nodes are dark badges (near-black radial gradient) that read as
+   solid black on the light panel — give them a light glass badge instead and
+   keep the per-brand icon colours (they stay legible on white). */
+html[data-theme="light"] .connect-node {
+  background: radial-gradient(circle at 34% 30%, #ffffff, #eef0fb 82%);
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  box-shadow: 0 10px 24px rgba(23, 19, 31, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+html[data-theme="light"] .connect-node:hover,
+html[data-theme="light"] .connect-node:focus-visible {
+  border-color: rgba(124, 58, 237, 0.34);
+}
+html[data-theme="light"] .connect-node--instagram {
+  box-shadow: 0 10px 24px rgba(23, 19, 31, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 22px 4px rgba(244, 114, 160, 0.28);
+}
+html[data-theme="light"] .connect-node--github svg {
+  color: #17131f;
 }
 
 /* Hero visual panel */
@@ -1820,9 +2046,11 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 .hero-panel {
   position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
   border-radius: var(--radius-xl);
-  padding: clamp(20px, 3vw, 34px);
+  /* extra padding gives the photo-frame's outward orbit rings (up to -16%
+     inset) room to clear the card edge instead of overlapping the border */
+  padding: clamp(40px, 7vw, 64px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1838,10 +2066,18 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   filter: blur(30px);
   z-index: -1;
 }
-.hero-panel .lottie-wrap,
-.hero-panel img {
-  width: 100%;
-  height: auto;
+/* The hero photo sits directly on the page — strip the glass card chrome
+   (background, border, blur, shadow and its gradient-border ::before) while
+   keeping the float animation, the accent glow (::after) and the orbit rings. */
+.hero-panel.glass {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.hero-panel.glass::before {
+  display: none;
 }
 .hero-status {
   position: absolute;
@@ -2107,7 +2343,7 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   pointer-events: none;
   z-index: 3;
 }
-.orbit-ring {
+.photo-orbits .orbit-ring {
   position: absolute;
   border-radius: 50%;
   --thick: 2px;
@@ -2117,7 +2353,7 @@ html[data-theme="light"] .tk-op { color: #be185d; }
 /* The thin arc lives on ::before with its own mask, so the leading dot on
    ::after is NOT clipped by that mask (that was hiding the comet head). The
    conic gradient fades in and ramps up to full brightness at the dot (top). */
-.orbit-ring::before {
+.photo-orbits .orbit-ring::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -2141,7 +2377,7 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   );
 }
 /* the bright leading glow dot — the "comet head" at the end of the arc */
-.orbit-ring::after {
+.photo-orbits .orbit-ring::after {
   content: "";
   position: absolute;
   top: 0;
@@ -2155,19 +2391,19 @@ html[data-theme="light"] .tk-op { color: #be185d; }
     0 0 22px 6px color-mix(in srgb, var(--trail) 55%, transparent);
 }
 /* Radii kept tight so the rings stay inside the glass card (no overflow). */
-.orbit-ring--1 {
+.photo-orbits .orbit-ring--1 {
   inset: -5%;
   --trail: var(--accent-2);
   --dot: 11px;
   animation: orbit-cw 16s linear infinite;
 }
-.orbit-ring--2 {
+.photo-orbits .orbit-ring--2 {
   inset: -11%;
   --trail: var(--accent);
   --dot: 10px;
   animation: orbit-ccw 24s linear infinite;
 }
-.orbit-ring--3 {
+.photo-orbits .orbit-ring--3 {
   inset: -16%;
   --thick: 1.5px;
   --trail: var(--aurora-magenta);
@@ -2222,15 +2458,15 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   .about-visual {
     padding-block: clamp(26px, 8vw, 40px);
   }
-  .orbit-ring--1 {
+  .photo-orbits .orbit-ring--1 {
     inset: -5%;
     --dot: 9px;
   }
-  .orbit-ring--2 {
+  .photo-orbits .orbit-ring--2 {
     inset: -10%;
     --dot: 8px;
   }
-  .orbit-ring--3 {
+  .photo-orbits .orbit-ring--3 {
     inset: -15%;
     --dot: 8px;
   }
@@ -2263,8 +2499,13 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   border: none !important;
   background: transparent !important;
   color: var(--text-secondary) !important;
+  /* Match the rest of the site's body copy (see .intro-body) instead of
+     inheriting Bootstrap's .blockquote sizing. */
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 0.95rem + 0.35vw, 1.12rem);
 }
 .about-card p {
+  font-family: var(--font-body);
   color: var(--text-secondary);
   line-height: 1.75;
 }
@@ -2274,6 +2515,7 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   margin: 0;
 }
 .about-activity li {
+  font-family: var(--font-body);
   padding: var(--space-2) 0;
   color: var(--text-secondary);
 }
@@ -2400,13 +2642,109 @@ html[data-theme="light"] .tk-op { color: #be185d; }
 /* =============================================================
    PROJECTS SHOWCASE
    ============================================================= */
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 460px));
-  justify-content: center;
-  gap: clamp(20px, 3vw, 32px);
+/* Carousel: a horizontal scroll-snap track with prev/next arrows and dots.
+   Shows however many cards fit the viewport (1 on mobile, more on desktop);
+   the arrows/dots only navigate when the track actually overflows. */
+.projects-carousel {
+  position: relative;
   max-width: 1000px;
   margin-inline: auto;
+}
+.projects-track {
+  display: flex;
+  gap: clamp(20px, 3vw, 32px);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-block: 4px;
+}
+.projects-track::-webkit-scrollbar {
+  display: none;
+}
+.projects-track .project-cell {
+  flex: 0 0 auto;
+  width: min(100%, 460px);
+  scroll-snap-align: center;
+}
+/* Only pad room for side arrows once the carousel is active. */
+.projects-carousel.is-carousel .projects-track {
+  padding-inline: clamp(0px, 2vw, 8px);
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text);
+  font-size: 1.35rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm, 0 6px 18px rgba(0, 0, 0, 0.18));
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+.carousel-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 22%, var(--glass-bg));
+  transform: translateY(-50%) scale(1.08);
+}
+.carousel-btn:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+.carousel-btn--prev {
+  left: 0;
+}
+.carousel-btn--next {
+  right: 0;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: var(--space-5);
+}
+.carousel-dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 28%, transparent);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, width 0.2s ease;
+}
+.carousel-dot:hover {
+  background: color-mix(in srgb, var(--text) 55%, transparent);
+}
+.carousel-dot.is-active {
+  width: 26px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .carousel-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 1.15rem;
+  }
+  .carousel-btn--prev {
+    left: -4px;
+  }
+  .carousel-btn--next {
+    right: -4px;
+  }
 }
 .project-card {
   display: flex;

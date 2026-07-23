@@ -6,6 +6,7 @@ import { smoothScrollTo } from "./smoothScroll";
 export const SECTION_IDS = [
   "home",
   "about",
+  "education",
   "skills",
   "projects",
   "resume",

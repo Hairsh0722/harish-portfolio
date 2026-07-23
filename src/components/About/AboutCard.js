@@ -1,8 +1,9 @@
 import React from "react";
 import Card from "react-bootstrap/Card";
-import { Trans } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 
 function AboutCard() {
+  const { t } = useTranslation();
   return (
     <Card className="quote-card-view">
       <Card.Body>
@@ -13,9 +14,10 @@ function AboutCard() {
             </Trans>
             <br />
             <br />
-            <Trans i18nKey="about.card.p2">
-              I hold a degree in <span className="purple">Electronics and Instrumentation Engineering</span> from <span className="purple">Panimalar Engineering College</span>, which gives me a strong grounding in systems thinking that carries over into how I design and build software. My focus is on developing scalable, maintainable applications and solving practical problems with clean, efficient code.
-            </Trans>
+            {t("home.intro.p1")}
+            <br />
+            <br />
+            {t("home.intro.p3")}
             <br />
             <br />
             <Trans i18nKey="about.card.interestsIntro">

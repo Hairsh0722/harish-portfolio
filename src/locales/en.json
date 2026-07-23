@@ -1,7 +1,8 @@
 {
   "nav": {
-    "home": "Home",
+    "brand": "Harish",
     "about": "About",
+    "education": "Education",
     "skills": "Skills",
     "projects": "Projects",
     "resume": "Resume",
@@ -41,8 +42,7 @@
     "intro": {
       "eyebrow": "A little about me",
       "heading": "Let me <1>introduce</1> myself",
-      "p1": "I'm a Software Engineer who turns ideas into reliable, scalable products — with a real passion for high-performance systems and clean, intuitive interfaces.",
-      "p2": "I work across the full stack and gravitate toward systems that aren't static: real-time updates, complex UIs, lots of moving parts. I like going deep — optimizing and refining until things feel fast, clean, and right.",
+      "p1": "I turn ideas into reliable, scalable products, with a real passion for high-performance systems and clean, intuitive interfaces. I work across the full stack and gravitate toward systems that aren't static — real-time updates, complex UIs, lots of moving parts. I like going deep: optimizing and refining until things feel fast, clean, and right.",
       "p3": "Always learning, always up for a challenge. So if you're building something interesting or technically demanding, I'd love to be part of it. 😄"
     }
   },
@@ -64,6 +64,21 @@
       "totalCount": "{{count}} contributions in the last year"
     }
   },
+  "education": {
+    "eyebrow": "My education",
+    "heading": "Where I <1>studied</1>",
+    "items": {
+      "be": {
+        "degree": "Bachelor of Engineering",
+        "field": "Electronics & Instrumentation Engineering",
+        "institution": "Panimalar Engineering College",
+        "location": "Tamil Nadu, India",
+        "period": "2017 – 2021",
+        "grade": "7.60 / 10 CGPA",
+        "description": "Built a strong grounding in systems thinking — measurement, control, and how complex systems fit together — which carries straight into how I design and build software today."
+      }
+    }
+  },
   "skills": {
     "eyebrow": "What I work with",
     "heading": "Professional <1>skillset</1>",
@@ -76,7 +91,10 @@
     "showcase": {
       "eyebrow": "Featured work",
       "heading": "Things I've <1>built</1>",
-      "lead": "A selection of projects I've worked on — the problems they solve and the parts I built."
+      "lead": "A selection of projects I've worked on — the problems they solve and the parts I built.",
+      "prev": "Previous project",
+      "next": "Next project",
+      "goToProject": "Go to project {{number}}"
     },
     "card": {
       "keyModules": "Key modules",

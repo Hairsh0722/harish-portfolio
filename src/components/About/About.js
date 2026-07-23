@@ -1,8 +1,9 @@
 import React from "react";
+import Tilt from "react-parallax-tilt";
 import { Trans, useTranslation } from "react-i18next";
 import Aboutcard from "./AboutCard";
 import Github from "./Github";
-import avatar from "../../Assets/avatar.webp";
+import CodeTerminal from "../Home/CodeTerminal";
 
 function About() {
   const { t } = useTranslation();
@@ -23,22 +24,9 @@ function About() {
         >
           <div className="about-grid">
             <div className="about-visual">
-              <div className="about-photo-frame">
-                <img
-                  src={avatar}
-                  alt="Harish Siva"
-                  className="about-photo"
-                  width="700"
-                  height="700"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <span className="photo-orbits" aria-hidden="true">
-                  <span className="orbit-ring orbit-ring--1" />
-                  <span className="orbit-ring orbit-ring--2" />
-                  <span className="orbit-ring orbit-ring--3" />
-                </span>
-              </div>
+              <Tilt tiltMaxAngleX={6} tiltMaxAngleY={6} glareEnable={false}>
+                <CodeTerminal />
+              </Tilt>
             </div>
             <div className="about-card">
               <Aboutcard />

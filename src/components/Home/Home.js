@@ -1,10 +1,8 @@
 import React from "react";
-import Home2 from "./Home2";
 import scrollToSection from "../helper/scrollToSection";
 import { requestResume } from "../helper/resumeReveal";
 import Type from "./Type";
-import heroAnim from "../../Assets/lottie/Developer2.json";
-import AnimationLottie from "../helper/animation-lottie";
+import avatar from "../../Assets/avatar.webp";
 import { AiOutlineArrowRight, AiFillFacebook } from "react-icons/ai";
 import { FaLinkedinIn, FaGithub, FaInstagram } from "react-icons/fa";
 import { HiOutlineMail } from "react-icons/hi";
@@ -91,11 +89,21 @@ function Home() {
 
           <div className="hero-visual" data-reveal="right">
             <div className="hero-panel glass">
-              <span className="status-chip hero-status">
-                <span className="dot" /> {t("home.hero.openToOpportunities")}
-              </span>
-              <div className="lottie-wrap">
-                <AnimationLottie animationPath={heroAnim} />
+              <div className="about-photo-frame">
+                <img
+                  src={avatar}
+                  alt="Harish Siva"
+                  className="about-photo"
+                  width="480"
+                  height="480"
+                  loading="eager"
+                  decoding="async"
+                />
+                <span className="photo-orbits" aria-hidden="true">
+                  <span className="orbit-ring orbit-ring--1" />
+                  <span className="orbit-ring orbit-ring--2" />
+                  <span className="orbit-ring orbit-ring--3" />
+                </span>
               </div>
             </div>
           </div>
@@ -108,9 +116,6 @@ function Home() {
           <span className="scroll-cue__label">{t("home.hero.scrollCue")}</span>
         </div>
       </div>
-
-      {/* ---------------- INTRO ---------------- */}
-      <Home2 />
     </section>
   );
 }

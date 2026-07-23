@@ -3,11 +3,11 @@ import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
 import {
-  AiOutlineHome,
   AiOutlineUser,
   AiOutlineLaptop,
   AiOutlineMessage,
   AiOutlineFundProjectionScreen,
+  AiOutlineRead,
 } from "react-icons/ai";
 import { CgFileDocument } from "react-icons/cg";
 import { FiSun, FiMoon, FiPhoneCall, FiMaximize, FiMinimize } from "react-icons/fi";
@@ -20,8 +20,8 @@ import useFullscreen from "./helper/useFullscreen";
 
 // Labels are resolved from i18n at render time via t(`nav.${id}`).
 const NAV_ITEMS = [
-  { id: "home", icon: <AiOutlineHome /> },
   { id: "about", icon: <AiOutlineUser /> },
+  { id: "education", icon: <AiOutlineRead /> },
   { id: "skills", icon: <AiOutlineLaptop /> },
   { id: "projects", icon: <AiOutlineFundProjectionScreen /> },
   { id: "resume", icon: <CgFileDocument /> },
@@ -270,6 +270,14 @@ function NavBar({ theme, onToggleTheme }) {
             pathLength="1"
           />
         </svg>
+        <Navbar.Brand
+          as="button"
+          type="button"
+          onClick={() => go("home")}
+          aria-label={t("nav.brand")}
+        >
+          {t("nav.brand")}
+        </Navbar.Brand>
         <Navbar.Collapse id="responsive-navbar-nav" className="nav-menu">
           <Nav className="nav-links">
             {NAV_ITEMS.map((item) => (
