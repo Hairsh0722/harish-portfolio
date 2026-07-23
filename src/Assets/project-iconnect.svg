@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360" role="img" aria-label="iConnect — app preview">
+  <defs>
+    <linearGradient id="icBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0f1c"/>
+      <stop offset="1" stop-color="#101526"/>
+    </linearGradient>
+    <radialGradient id="icGlowC" cx="0.1" cy="0.05" r="0.85">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="icGlowP" cx="0.95" cy="1.05" r="0.95">
+      <stop offset="0" stop-color="#a855f7" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="icAccent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="icTile1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="icTile2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a855f7" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#a855f7" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="icGallery" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#c084fc"/>
+    </linearGradient>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="640" height="360" fill="url(#icBg)"/>
+  <rect width="640" height="360" fill="url(#icGlowC)"/>
+  <rect width="640" height="360" fill="url(#icGlowP)"/>
+
+  <!-- web app window -->
+  <g>
+    <rect x="40" y="56" width="470" height="248" rx="18" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.12"/>
+    <rect x="40" y="56" width="470" height="4" rx="2" fill="url(#icAccent)"/>
+
+    <!-- title bar -->
+    <circle cx="64" cy="84" r="4.5" fill="#ff5f57" fill-opacity="0.85"/>
+    <circle cx="80" cy="84" r="4.5" fill="#febc2e" fill-opacity="0.85"/>
+    <circle cx="96" cy="84" r="4.5" fill="#28c840" fill-opacity="0.85"/>
+    <text x="128" y="88" font-family="'Segoe UI',Inter,system-ui,sans-serif" font-weight="700" font-size="12" letter-spacing="0.5" fill="#ffffff" fill-opacity="0.72">iConnect</text>
+    <circle cx="482" cy="84" r="9" fill="url(#icGallery)"/>
+
+    <!-- greeting / dashboard header -->
+    <rect x="64" y="112" width="150" height="10" rx="5" fill="#ffffff" fill-opacity="0.5"/>
+    <rect x="64" y="130" width="96" height="7" rx="3.5" fill="#ffffff" fill-opacity="0.22"/>
+
+    <!-- widgets grid -->
+    <!-- announcement (megaphone) -->
+    <rect x="64" y="152" width="200" height="60" rx="11" fill="url(#icTile2)" stroke="#ffffff" stroke-opacity="0.1"/>
+    <g transform="translate(80,168)" stroke="#c084fc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 12 v-4 l16 -6 v20 l-16 -6 z"/>
+      <path d="M2 8 h-2 a2 2 0 0 0 -2 2 v0 a2 2 0 0 0 2 2 h2" transform="translate(4,0)"/>
+      <path d="M18 6 a6 6 0 0 1 0 12"/>
+    </g>
+    <rect x="118" y="164" width="130" height="8" rx="4" fill="#ffffff" fill-opacity="0.42"/>
+    <rect x="118" y="180" width="96" height="6" rx="3" fill="#ffffff" fill-opacity="0.22"/>
+    <rect x="118" y="194" width="112" height="6" rx="3" fill="#ffffff" fill-opacity="0.22"/>
+
+    <!-- gallery / video tile -->
+    <rect x="276" y="152" width="98" height="60" rx="11" fill="url(#icGallery)" fill-opacity="0.9"/>
+    <circle cx="325" cy="182" r="14" fill="#0b0f1c" fill-opacity="0.35"/>
+    <path d="M321 175 l10 7 l-10 7 z" fill="#ffffff"/>
+
+    <!-- widget tile -->
+    <rect x="386" y="152" width="98" height="60" rx="11" fill="url(#icTile1)" stroke="#ffffff" stroke-opacity="0.1"/>
+    <rect x="400" y="166" width="70" height="8" rx="4" fill="#ffffff" fill-opacity="0.4"/>
+    <circle cx="410" cy="192" r="10" fill="none" stroke="#22d3ee" stroke-width="3"/>
+    <path d="M410 192 L410 182 A10 10 0 0 1 419 196 Z" fill="#22d3ee" fill-opacity="0.7"/>
+    <rect x="430" y="184" width="42" height="6" rx="3" fill="#ffffff" fill-opacity="0.22"/>
+    <rect x="430" y="196" width="30" height="6" rx="3" fill="#ffffff" fill-opacity="0.22"/>
+
+    <!-- gallery thumbnail strip -->
+    <rect x="64" y="228" width="46" height="34" rx="7" fill="#ffffff" fill-opacity="0.08"/>
+    <rect x="118" y="228" width="46" height="34" rx="7" fill="#ffffff" fill-opacity="0.08"/>
+    <rect x="172" y="228" width="46" height="34" rx="7" fill="#ffffff" fill-opacity="0.08"/>
+    <rect x="226" y="228" width="46" height="34" rx="7" fill="#ffffff" fill-opacity="0.08"/>
+    <rect x="280" y="228" width="46" height="34" rx="7" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.12" stroke-dasharray="3 3"/>
+  </g>
+
+  <!-- mobile app (cross-platform) -->
+  <g>
+    <rect x="486" y="150" width="118" height="188" rx="22" fill="#0b0f1c" stroke="#ffffff" stroke-opacity="0.18"/>
+    <rect x="492" y="156" width="106" height="176" rx="16" fill="#ffffff" fill-opacity="0.05"/>
+    <rect x="486" y="150" width="118" height="6" rx="3" fill="url(#icAccent)"/>
+    <rect x="524" y="160" width="42" height="5" rx="2.5" fill="#ffffff" fill-opacity="0.25"/>
+    <!-- mini header -->
+    <rect x="504" y="178" width="60" height="8" rx="4" fill="#ffffff" fill-opacity="0.45"/>
+    <rect x="504" y="192" width="40" height="6" rx="3" fill="#ffffff" fill-opacity="0.2"/>
+    <!-- mini widgets -->
+    <rect x="504" y="208" width="82" height="30" rx="8" fill="url(#icTile2)"/>
+    <rect x="504" y="244" width="38" height="34" rx="8" fill="url(#icGallery)" fill-opacity="0.85"/>
+    <circle cx="523" cy="261" r="7" fill="#0b0f1c" fill-opacity="0.35"/>
+    <path d="M521 257 l5 4 l-5 4 z" fill="#ffffff"/>
+    <rect x="548" y="244" width="38" height="34" rx="8" fill="url(#icTile1)"/>
+    <!-- bottom nav -->
+    <circle cx="516" cy="300" r="4" fill="#22d3ee"/>
+    <circle cx="545" cy="300" r="4" fill="#ffffff" fill-opacity="0.25"/>
+    <circle cx="574" cy="300" r="4" fill="#ffffff" fill-opacity="0.25"/>
+  </g>
+
+  <!-- wordmark badge -->
+  <g transform="translate(28,300)">
+    <rect x="0" y="0" width="120" height="30" rx="8" fill="url(#icAccent)"/>
+    <text x="60" y="21" text-anchor="middle" font-family="'Segoe UI',Inter,system-ui,sans-serif" font-weight="700" font-size="16" letter-spacing="0.3" fill="#0b0f1c">iConnect</text>
+  </g>
+</svg>

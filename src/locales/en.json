@@ -41,9 +41,9 @@
     "intro": {
       "eyebrow": "A little about me",
       "heading": "Let me <1>introduce</1> myself",
-      "p1": "I'm a Software Engineer who loves turning ideas into reliable, scalable products. Over time I've explored many technologies and found my passion in building high-performance systems and intuitive user experiences.",
-      "p2": "I enjoy working across the full stack, bridging the gap between robust backend logic and thoughtful frontend design to deliver seamless end-to-end experiences.",
-      "p3": "I'm always eager to learn new technologies and take on challenges that push me to grow as a developer."
+      "p1": "I'm a Software Engineer who turns ideas into reliable, scalable products — with a real passion for high-performance systems and clean, intuitive interfaces.",
+      "p2": "I work across the full stack and gravitate toward systems that aren't static: real-time updates, complex UIs, lots of moving parts. I like going deep — optimizing and refining until things feel fast, clean, and right.",
+      "p3": "Always learning, always up for a challenge. So if you're building something interesting or technically demanding, I'd love to be part of it. 😄"
     }
   },
   "about": {
@@ -92,6 +92,14 @@
           "Transport Management System",
           "Employee Exit Process",
           "Employee overall data & directory"
+        ]
+      },
+      "iC": {
+        "description": "An internal HR / employee portal (HRIS) for iOPEX — a personalized hub that brings a configurable home dashboard, a photo & video gallery, and company announcements together in one place, across web and mobile.",
+        "modules": [
+          "Personalized dashboard & widgets",
+          "Photo & video gallery",
+          "Company announcements & updates"
         ]
       }
     }

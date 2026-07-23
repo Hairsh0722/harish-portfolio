@@ -6,6 +6,9 @@
      to show a gradient cover with the project's abbreviation.
 ------------------------------------------------------------------- */
 
+import eibCover from "../../Assets/project-eib.svg";
+import iconnectCover from "../../Assets/project-iconnect.svg";
+
 const projects = [
   {
     title: "Employee Information Bank (EIB)",
@@ -20,8 +23,23 @@ const projects = [
     // TODO: replace with the real stack you used on EIB
     tags: ["React", "REST API"],
     ghLink: "", // internal project — leave empty to hide the "Code" button
-    demoLink: "", // add a live URL here if there is one
-    imgPath: "", // optional: import a screenshot above and put it here
+    demoLink: "https://hreib.growatiopex.com/MyProfile2.0",
+    imgPath: eibCover,
+  },
+  {
+    title: "iConnect",
+    abbr: "iC",
+    description:
+      "An internal HR / employee portal (HRIS) for iOPEX — a personalized hub that brings a configurable home dashboard, a photo & video gallery, and company announcements together in one place, across web and mobile.",
+    modules: [
+      "Personalized dashboard & widgets",
+      "Photo & video gallery",
+      "Company announcements & updates",
+    ],
+    tags: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Capacitor"],
+    ghLink: "", // internal project — leave empty to hide the "Code" button
+    demoLink: "https://digital.growatiopex.com",
+    imgPath: iconnectCover,
   },
 ];
 
