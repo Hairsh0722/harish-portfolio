@@ -793,9 +793,10 @@ a:hover {
   .nav-aurora .fullscreen-toggle {
     display: none;
   }
-  .nav-aurora .navbar-brand {
-    font-size: 0.98rem;
-  }
+  /* NOTE: mobile nav sizing (shell gap, brand size, one-row control cluster)
+     lives in the @media block AFTER the base .nav-aurora rules below — those
+     base rules are declared later in the file than this block, so overrides
+     for shell/brand must come after them to win the cascade. */
 }
 
 /* =============================================================
@@ -1671,6 +1672,84 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   }
 }
 
+/* -------------------------------------------------------------------
+   Mobile nav sizing — MUST live after the base .nav-aurora rules above.
+   The earlier @media blocks (near the top of the file) are declared
+   *before* the base rules, so at equal specificity the base wins and
+   those overrides get dropped. Declaring the phone layout here (after
+   the base block) makes it authoritative.
+
+   Goal: keep hamburger + brand + theme + accent + language + phone on a
+   SINGLE row down to 320px. The language + accent pills collapse to
+   icon-only buttons (label + dropdown carets hidden) so the whole
+   control cluster fits without wrapping onto a second row.
+   ------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .nav-aurora .nav-shell {
+    gap: 5px;
+    padding: 0.3rem 0.4rem;
+    flex-wrap: wrap; /* only the links menu (flex-basis:100%) wraps below */
+  }
+  .nav-aurora .navbar-brand {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.1rem;
+  }
+  .nav-actions {
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    gap: 4px;
+    margin-left: auto; /* push the control cluster to the right edge */
+  }
+  .nav-aurora .theme-toggle,
+  .nav-cta,
+  .lang-pill,
+  .accent-pill {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+    flex: 0 0 auto;
+    font-size: 0.9rem;
+  }
+  /* icon-only: hide the "EN" label and both dropdown carets */
+  .lang-pill > span,
+  .lang-pill .lang-caret,
+  .accent-pill .accent-caret {
+    display: none;
+  }
+  .nav-aurora .navbar-toggler {
+    padding: 0.3rem 0.4rem !important;
+    margin-right: 2px;
+  }
+  /* Expanded links menu: a clean 2-row × 3-column grid that fits INSIDE the
+     pill. `minmax(0, 1fr)` + min-width:0 lets the columns shrink to equal
+     thirds instead of blowing out to each chip's intrinsic width (which pushed
+     Resume/Contact past the pill's right edge). Tighter padding + font keep all
+     six labels legible within a ~320px pill. */
+  .nav-aurora .navbar-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .nav-aurora .nav-item {
+    min-width: 0;
+  }
+  .nav-aurora .nav-link {
+    min-width: 0;
+    justify-content: center;
+    padding: 0.45rem 0.2rem !important;
+    gap: 0.2rem;
+    font-size: 0.67rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .nav-aurora .nav-link svg {
+    font-size: 0.9em;
+    flex: 0 0 auto;
+  }
+}
+
 /* =============================================================
    HERO
    ============================================================= */
@@ -2267,6 +2346,18 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   display: flex;
   justify-content: center;
   align-items: center;
+  /* Grid/flex items default to min-width:auto, which refuses to shrink below
+     the code card's intrinsic width and blows the column out past the card on
+     narrow screens. Letting these shrink keeps the code card (and the prose
+     beside it) inside the outer glass card at every width. */
+  min-width: 0;
+}
+.about-visual > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.about-card {
+  min-width: 0;
 }
 /* The conic ring's start angle is animated. Registering it as an <angle>
    lets it interpolate smoothly (and inherit into the bloom pseudo). Browsers

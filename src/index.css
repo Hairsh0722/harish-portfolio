@@ -10,6 +10,11 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* Clip horizontal overflow at the root so fixed-position decor (the custom
+     cursor layers, aurora bleed) can't create a sideways scroll on narrow
+     screens. `clip` (not `hidden`) avoids creating a scroll container, so it
+     leaves Lenis's vertical window-scroll and sticky positioning untouched. */
+  overflow-x: clip;
 }
 
 body {
