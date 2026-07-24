@@ -1279,6 +1279,11 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   justify-content: center;
   gap: var(--space-3);
   flex: 0 0 120px;
+  /* iOS Safari mis-computes flex-basis inside a `width: max-content` track,
+     letting tiles collapse to content width and overlap. Pin the width so
+     the tiles hold their size on every browser. */
+  width: 120px;
+  min-width: 120px;
   box-sizing: border-box;
   min-height: 118px;
   padding: var(--space-4);
@@ -1502,14 +1507,17 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   font-size: 1.25rem;
   line-height: 1;
   letter-spacing: -0.01em;
-  color: var(--text-primary) !important;
+  /* Brand wordmark in the accent colour — adapts to both the light/dark theme
+     and the accent-palette switcher, so it stays vivid and never washes out to
+     plain white/black. */
+  color: var(--accent) !important;
   align-items: center;
   gap: 0.5rem;
   transition: color var(--dur-fast) var(--ease-out),
     opacity var(--dur-fast) var(--ease-out);
 }
 .nav-aurora .navbar-brand:hover {
-  color: var(--accent) !important;
+  color: var(--accent-2) !important;
 }
 .nav-aurora .navbar-brand:focus {
   outline: none;
@@ -3219,6 +3227,8 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   }
   .skill-tile {
     flex-basis: 92px;
+    width: 92px;
+    min-width: 92px;
   }
 }
 
@@ -3789,73 +3799,6 @@ html.theme-vt::view-transition-new(root) {
   0% { opacity: 1; transform: translateY(0); }
   60% { opacity: 1; }
   100% { opacity: 0.12; transform: translateY(-52px); }
-}
-
-/* ---- Hero scroll cue ----------------------------------------------
-   A small mouse hint that bobs, then fades out the instant the reader
-   starts scrolling (fade is scroll-linked; the wheel bob is a plain
-   loop). Absolutely positioned inside the relative .hero. */
-.scroll-cue {
-  position: absolute;
-  left: 50%;
-  bottom: clamp(14px, 3vh, 30px);
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  font-weight: 500;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-.scroll-cue__mouse {
-  position: relative;
-  width: 22px;
-  height: 34px;
-  border: 1.5px solid var(--glass-border-strong);
-  border-radius: var(--radius-pill);
-}
-.scroll-cue__mouse::after {
-  content: "";
-  position: absolute;
-  top: 6px;
-  left: 50%;
-  width: 3px;
-  height: 7px;
-  border-radius: 2px;
-  background: var(--accent-2);
-  transform: translateX(-50%);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .scroll-cue__mouse::after {
-    animation: scroll-cue-wheel 1.7s var(--ease-in-out) infinite;
-  }
-}
-@keyframes scroll-cue-wheel {
-  0% { opacity: 0; transform: translate(-50%, 0); }
-  30% { opacity: 1; }
-  70% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, 9px); }
-}
-@supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .scroll-cue {
-      /* Longhands, not the `animation` shorthand — see the .hero note above:
-         the shorthand resets animation-timeline and cssnano reorders it. */
-      animation-name: scroll-cue-fade;
-      animation-timing-function: linear;
-      animation-fill-mode: both;
-      animation-timeline: scroll(root block);
-      animation-range: 0 16vh;
-    }
-  }
-}
-@keyframes scroll-cue-fade {
-  to { opacity: 0; }
 }
 
 /* =============================================================

@@ -108,13 +108,6 @@ function Home() {
             </div>
           </div>
         </div>
-
-        {/* Scroll cue — bobs, then fades out as the reader scrolls
-            (fade is scroll-linked in CSS; see SCROLL-DRIVEN CINEMATICS). */}
-        <div className="scroll-cue" aria-hidden="true">
-          <span className="scroll-cue__mouse" />
-          <span className="scroll-cue__label">{t("home.hero.scrollCue")}</span>
-        </div>
       </div>
     </section>
   );
