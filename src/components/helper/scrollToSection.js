@@ -10,6 +10,7 @@ export const SECTION_IDS = [
   "skills",
   "projects",
   "resume",
+  "guild",
   "contact",
 ];
 

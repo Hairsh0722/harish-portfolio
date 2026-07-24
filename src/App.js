@@ -9,6 +9,7 @@ import Footer from "./components/Footer";
 import Resume from "./components/Resume/ResumeNew";
 import Contact from "./components/Contact/Contact";
 import Connect from "./components/Connect/Connect";
+import Guild from "./components/Guild/Guild";
 import ProjectShowcase from "./components/Projects/ProjectShowcase";
 import { BrowserRouter as Router } from "react-router-dom";
 import DeepLinkScroll from "./components/DeepLinkScroll";
@@ -63,6 +64,7 @@ function App() {
           <Projects />
           <ProjectShowcase />
           <Resume />
+          <Guild />
           <Contact />
           <Connect />
         </main>

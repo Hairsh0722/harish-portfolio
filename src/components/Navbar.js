@@ -8,6 +8,7 @@ import {
   AiOutlineMessage,
   AiOutlineFundProjectionScreen,
   AiOutlineRead,
+  AiOutlinePushpin,
 } from "react-icons/ai";
 import { CgFileDocument } from "react-icons/cg";
 import { FiSun, FiMoon, FiPhoneCall, FiMaximize, FiMinimize } from "react-icons/fi";
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { id: "skills", icon: <AiOutlineLaptop /> },
   { id: "projects", icon: <AiOutlineFundProjectionScreen /> },
   { id: "resume", icon: <CgFileDocument /> },
+  { id: "guild", icon: <AiOutlinePushpin /> },
   { id: "contact", icon: <AiOutlineMessage /> },
 ];
 
@@ -270,14 +272,6 @@ function NavBar({ theme, onToggleTheme }) {
             pathLength="1"
           />
         </svg>
-        <Navbar.Brand
-          as="button"
-          type="button"
-          onClick={() => go("home")}
-          aria-label={t("nav.brand")}
-        >
-          {t("nav.brand")}
-        </Navbar.Brand>
         <Navbar.Collapse id="responsive-navbar-nav" className="nav-menu">
           <Nav className="nav-links">
             {NAV_ITEMS.map((item) => (

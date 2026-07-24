@@ -1,5 +1,5 @@
 /* ===== Fonts: modern developer pairing ===== */
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@500;600;700&display=swap");
 
 *,
 *::before,
@@ -15,6 +15,11 @@ html {
      screens. `clip` (not `hidden`) avoids creating a scroll container, so it
      leaves Lenis's vertical window-scroll and sticky positioning untouched. */
   overflow-x: clip;
+  /* iOS Safari lets you drag past the end of the page (rubber-band) and
+     reveals a blank area beneath the content there. This stops that overscroll
+     bounce so no empty area shows after the page ends. Behavior only — it
+     changes no colors or layout. */
+  overscroll-behavior-y: none;
 }
 
 body {

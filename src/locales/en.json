@@ -6,6 +6,7 @@
     "skills": "Skills",
     "projects": "Projects",
     "resume": "Resume",
+    "guild": "Guild",
     "contact": "Contact",
     "contactMe": "Contact me",
     "scrollProgress": "Page scroll progress",
@@ -76,6 +77,15 @@
         "period": "2017 – 2021",
         "grade": "",
         "description": "Built a strong grounding in systems thinking — measurement, control, and how complex systems fit together — which carries straight into how I design and build software today."
+      },
+      "hsc": {
+        "degree": "Higher Secondary Education",
+        "field": "",
+        "institution": "St. John's Matriculation School",
+        "location": "Tamil Nadu, India",
+        "period": "2015 – 2017",
+        "grade": "",
+        "description": "This was the starting point of my tech journey. Studying Physics, Chemistry, and Maths sharpened my problem-solving skills, but it was the Computer Science subject that truly captivated me and convinced me to pursue this path professionally."
       }
     }
   },
@@ -156,6 +166,53 @@
       "errEmailRequired": "Please enter your email.",
       "errEmailInvalid": "Please enter a valid email address.",
       "errMessage": "Please enter a message."
+    }
+  },
+  "guild": {
+    "eyebrow": "The Guild Board",
+    "heading": "The Wall <1>Keeps Them</1>",
+    "subtitle": "Every Word Matters Here",
+    "pin": "Pin Something",
+    "recent": "Recent Posts",
+    "loved": "Loved by Harish",
+    "likesLabel": "{{count}} likes",
+    "like": "Like this note",
+    "unlike": "Remove your like",
+    "delete": "Delete this note",
+    "confirmDelete": "Delete this note from the wall?",
+    "deleteError": "Couldn't delete the note. Please try again.",
+    "empty": "The wall is empty — be the first to pin something.",
+    "owner": {
+      "title": "Owner sign in",
+      "hint": "Sign in to manage the wall — only you can delete pins.",
+      "email": "Email",
+      "password": "Password",
+      "signIn": "Sign in",
+      "signingIn": "Signing in…",
+      "signOut": "Sign out",
+      "active": "Owner mode",
+      "error": "Sign-in failed. Check your email and password."
+    },
+    "form": {
+      "title": "Pin Something",
+      "hint": "Leave a note on the wall — a kind word, feedback, or just a hello.",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "optional": "optional",
+      "emailPlaceholder": "you@example.com",
+      "message": "Your note",
+      "messagePlaceholder": "Write something worth pinning…",
+      "submit": "Pin it",
+      "sending": "Pinning…",
+      "success": "Pinned! Thanks for the note — Harish will add it to the wall soon.",
+      "done": "Done",
+      "error": "Something went wrong. Please try again, or reach out on WhatsApp.",
+      "notConfigured": "The mail service isn't configured yet. Please reach out on WhatsApp for now.",
+      "close": "Close",
+      "errName": "Please enter your name.",
+      "errEmail": "Please enter a valid email address.",
+      "errMessage": "Please write a note."
     }
   },
   "connect": {

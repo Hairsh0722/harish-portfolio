@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Security rules for the shared Guild Board.
+// Paste these into Firebase console > Firestore Database > Rules and Publish.
+// The owner UID below is already set to the account that may delete pins.
+//
+// - Anyone may read the wall and add a pin (validated below).
+// - Only the owner (matching UID) may delete a pin.
+// - Nobody may edit an existing pin from the client.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /guildPins/{pinId} {
+      allow read: if true;
+
+      allow create: if
+        request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 60
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 220
+        && request.resource.data.likes == 0
+        && request.resource.data.createdAt == request.time;
+
+      allow delete: if request.auth != null
+        && request.auth.uid == "iuZHEmlmHpTZlleOFw9VF5C6luf2";
+
+      allow update: if false;
+    }
+  }
+}
