@@ -1710,11 +1710,12 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
    allowed to wrap to a neat second row inside the pill so nothing clips.
    ------------------------------------------------------------------- */
 @media (max-width: 480px) {
-  /* Slim the outer gutters so the pill has the maximum width to lay its one
-     row out in. */
+  /* Outer gutters: pull the pill in slightly from the screen edges so it's a
+     touch narrower than edge-to-edge, while still leaving enough width for the
+     control row to stay on one line. */
   .nav-aurora {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
   }
   .nav-aurora .nav-shell {
     gap: 5px;

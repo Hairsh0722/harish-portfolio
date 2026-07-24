@@ -9,6 +9,9 @@ import { FaGraduationCap } from "react-icons/fa";
    show a new card. `period`, `grade`, `location`, and `field`
    are optional — leave the locale value empty to hide them.
    ============================================================= */
-const educationData = [{ id: "be", icon: FaGraduationCap }];
+const educationData = [
+  { id: "be", icon: FaGraduationCap },
+  { id: "hsc", icon: FaGraduationCap },
+];
 
 export default educationData;
