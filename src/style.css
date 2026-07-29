@@ -1336,7 +1336,12 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   --marquee-speed: 32s;
   position: relative;
   overflow: hidden;
-  margin: var(--space-5) auto var(--space-6);
+  /* padding reserves room inside the clipped box for the hover
+     lift + glow on .skill-tile so overflow:hidden doesn't cut its
+     top/bottom border; margin is trimmed by the same amount so the
+     overall gap around the marquee is unchanged. */
+  padding: var(--space-4) 0;
+  margin: var(--space-3) auto var(--space-4);
   max-width: 100%;
   /* soft fade at both edges so tiles melt in/out instead of hard-clipping */
   -webkit-mask: linear-gradient(
