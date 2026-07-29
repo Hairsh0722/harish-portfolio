@@ -4,7 +4,7 @@ Guidance for Claude (or any AI assistant) working in this repository.
 
 ## Project Overview
 
-This is **Harish Siva's personal portfolio website** — a single-page, scroll-driven React app with an aurora / glassmorphism visual style. It showcases the owner's background, skills, and resume. Every section stacks vertically on one page; the navbar smooth-scrolls between them (there are no separate routed pages).
+This is **Harish Siva's personal portfolio website** — a single-page, scroll-driven React app with an aurora / glassmorphism visual style. It showcases the owner's background, education, skills, projects, and resume, and includes a shared visitor "Guild Board" and a client-side AI assistant. Every section stacks vertically on one page; the navbar smooth-scrolls between them (there are no separate routed pages).
 
 - **Live site:** https://harishportfolio.lovestoblog.com/
 - **Based on:** open-source template by [Soumyajit Behera](https://github.com/soumyajit4419/Portfolio), heavily customized.
@@ -18,12 +18,13 @@ This is **Harish Siva's personal portfolio website** — a single-page, scroll-d
 | UI | React Bootstrap 2 + custom CSS |
 | i18n | i18next + react-i18next — English / Hindi / Tamil, strings in `src/locales/*.json`, config in `src/i18n.js` |
 | Theming | Light/dark toggle (`helper/useTheme.js`) + accent palette switcher (`helper/AccentSwitcher.js`); tokens in `style.css` |
-| Animation | lottie-react, typewriter-effect, react-parallax-tilt, Lenis smooth scroll |
+| Animation | typewriter-effect, react-parallax-tilt, Lenis smooth scroll, custom canvas aurora / constellation backdrop |
 | PDF Viewer | react-pdf |
 | Contact form | @emailjs/browser (client-side email, no server) |
 | GitHub calendar | react-github-calendar |
 | Icons | react-icons |
-| HTTP Client | axios (`src/services/api.js`) |
+| Backend / DB | Firebase (Firestore + Auth) — powers the Guild Board shared wall; config in `src/services/firebase.js`, falls back to per-browser localStorage when env keys are unset |
+| Deploy | `scripts/deploy.js` FTP-publishes `build/` via `basic-ftp` (creds in `.env.deploy`) |
 
 No TypeScript, no CSS-in-JS, no Redux-style state library — state lives in component hooks and React context (i18next, theme). Keep additions consistent with this lightweight setup unless asked to introduce something new.
 
@@ -33,23 +34,29 @@ No TypeScript, no CSS-in-JS, no Redux-style state library — state lives in com
 Portfolio-master/
 ├── public/                  # Static assets, favicons, manifest, index.html
 ├── src/
-│   ├── Assets/              # Images, SVG tech icons, Lottie JSON, resume PDF
+│   ├── Assets/              # SVG tech/tool icons, avatar & photo, project covers, resume PDF
 │   ├── locales/             # i18n strings: en.json, hi.json, ta.json
 │   ├── components/
-│   │   ├── Home/            # Hero, intro, typewriter, code terminal
-│   │   ├── About/           # About card, tech/tool stack, GitHub calendar
-│   │   ├── Projects/        # Skills section + project showcase (projectsData.js)
-│   │   ├── Resume/          # PDF resume viewer (reveals on request)
+│   │   ├── Home/            # Hero, intro, typewriter (Type.js), code terminal
+│   │   ├── About/           # About card, tech/tool stack (Techstack/Toolstack), GitHub calendar
+│   │   ├── Education/       # Education timeline cards (educationData.js)
+│   │   ├── Projects/        # Skills + project grid (Projects.js, ProjectCards.js,
+│   │   │                    #   projectsData.js) plus the featured ProjectShowcase.js
+│   │   ├── Resume/          # PDF resume viewer — ResumeNew + lazy ResumePdf (reveals on request)
+│   │   ├── Guild/           # Guild Board — shared visitor wall (Firestore + localStorage
+│   │   │                    #   fallback, owner-only delete): Guild.js, guildStore.js,
+│   │   │                    #   PinModal.js, OwnerLogin.js, guildData.js
 │   │   ├── Contact/         # EmailJS contact form + WhatsApp CTA
 │   │   ├── Connect/         # Social links section
 │   │   ├── Assistant/       # Client-side AI assistant (knowledgeBase.js, matchIntent.js)
-│   │   ├── helper/          # Aurora backdrop, cursor, reveal, smooth-scroll,
-│   │   │                    #   theme/accent/language switchers, back-to-top
+│   │   ├── helper/          # Aurora + Constellation/DotGrid canvas, cursor, reveal,
+│   │   │                    #   smooth-scroll, theme/accent/language switchers,
+│   │   │                    #   back-to-top, CountUp, SkillMarquee, useFullscreen
 │   │   ├── Navbar.js        # Fixed nav: anchors, scrollspy, theme/lang/accent controls
 │   │   ├── DeepLinkScroll.js# Scrolls to the #anchor section on load
 │   │   ├── Footer.js        # Footer with social links
 │   │   └── Pre.js           # Preloader
-│   ├── services/            # Axios API client (api.js)
+│   ├── services/            # Firebase init (firebase.js) — Guild Board backend
 │   ├── i18n.js              # i18next initialization
 │   ├── App.js               # Single-page shell: stacks all sections
 │   ├── style.css            # Design system (aurora, glass, layout, theme tokens)
@@ -64,6 +71,7 @@ npm install       # install dependencies
 npm start         # dev server at http://localhost:3000
 npm run build     # production build to build/
 npm test          # run tests
+npm run deploy    # build, then FTP-publish build/ via scripts/deploy.js (basic-ftp; creds in .env.deploy)
 ```
 
 ## Where to Make Changes
@@ -79,11 +87,15 @@ Most user-facing **text is now translated** — it lives in `src/locales/{en,hi,
 | Contact / connect / footer copy | `src/locales/*.json` → `contact.*`, `connect.*`, `footer.*` |
 | Add / edit a UI language | add `src/locales/<lang>.json`, register in `src/i18n.js`, add to `helper/LanguageSwitcher.js` |
 | Hero social links | `src/components/Home/Home.js` |
-| Tech stack icons | `src/components/About/Techstack.js` (and `Projects/Techstack.js`) |
-| Tools icons | `src/components/About/Toolstack.js` (and `Projects/Toolstack.js`) |
-| Project showcase entries | `src/components/Projects/projectsData.js` |
+| Tech stack icons | `src/components/About/Techstack.js` |
+| Tools icons | `src/components/About/Toolstack.js` |
+| Project cards / entries | `src/components/Projects/projectsData.js` |
+| Featured showcase section | `src/components/Projects/ProjectShowcase.js` |
+| Education timeline entries | `src/components/Education/educationData.js` |
+| Guild Board behaviour / storage | `src/components/Guild/guildStore.js` (Firestore + localStorage fallback) |
 | AI assistant answers / intents | `src/components/Assistant/knowledgeBase.js` |
 | Resume PDF | `src/Assets/harish_resume_new.pdf` |
+| Firebase / Guild env config | `.env` (`REACT_APP_FIREBASE_*`, `REACT_APP_GUILD_OWNER_UID`) — see `.env.example`; init in `src/services/firebase.js`, access rules in `firestore.rules` |
 | Colors, accent palettes & design tokens | `src/style.css` |
 
 ## Sections (single-page)
@@ -93,10 +105,12 @@ The site is one page; the navbar scrolls between sections by `id`. Order and ids
 | Section id | Description |
 |---|---|
 | `home` | Hero, intro, typewriter, social links |
-| `about` | Background, education, interests, GitHub contribution calendar |
+| `about` | Background, interests, GitHub contribution calendar |
+| `education` | Education timeline / cards (data in `Education/educationData.js`) |
 | `skills` | Professional skillset and tools |
-| `projects` | Featured project showcase |
+| `projects` | Skills + project grid, followed by the featured `ProjectShowcase` block |
 | `resume` | Embedded resume viewer (hidden until requested) with download |
+| `guild` | Guild Board — shared visitor wall (Firestore + localStorage fallback, owner-only delete) |
 | `contact` | EmailJS contact form + WhatsApp CTA |
 | _connect_ | Social links (below contact; not a navbar item) |
 
@@ -109,6 +123,7 @@ The site is one page; the navbar scrolls between sections by `id`. Order and ids
 - **Performance:** the aurora background is GPU-friendly and fixed-position — avoid changes that force repaints on scroll. Scrolling is driven by Lenis; route section navigation through `scrollToSection.js` rather than fighting it with manual `scrollTo`.
 - **Content vs. code:** translated copy lives in `src/locales/*.json`; non-text data (icons, project entries, assistant knowledge) lives in the component/data files listed above. Prefer editing those over hardcoding elsewhere.
 - **Resume:** the PDF is rendered in-browser via `react-pdf`; if replacing it, keep the filename convention or update the import in `src/components/Resume/`.
+- **Guild Board / Firebase:** the visitor wall reads its config from `REACT_APP_FIREBASE_*` env vars; when they're absent, `firebaseReady` is `false` and it falls back to per-browser localStorage — keep that fallback path working so the site runs with no backend. Deletes are owner-only, enforced by `firestore.rules`; never relax the rules to allow anonymous writes/deletes.
 - **New sections:** add the component to the stack in `App.js`, give it an `id`, and — if it should be reachable from the nav — add its id to `SECTION_IDS` in `scrollToSection.js` and to `NAV_ITEMS` in `Navbar.js`.
 
 ## Testing & Verification

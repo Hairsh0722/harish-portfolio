@@ -42,7 +42,6 @@ function AiAssistant() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
 
-  const panelRef = useRef(null);
   const launcherRef = useRef(null);
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
@@ -151,7 +150,6 @@ function AiAssistant() {
 
       <section
         id="ai-assistant-panel"
-        ref={panelRef}
         className={`ai-panel ${open ? "is-open" : ""}`}
         role="dialog"
         aria-modal="false"

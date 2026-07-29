@@ -293,7 +293,7 @@ export const INTENTS = [
       "how did you build",
     ],
     reply: {
-      text: "This portfolio is a React 17 single-page app (Create React App) with React Router and React-Bootstrap, styled with a custom aurora / glassmorphism design system. The animations use Lottie and a typewriter effect, and the résumé renders in-browser with react-pdf.",
+      text: "This portfolio is a React 17 single-page app (Create React App) with React Router and React-Bootstrap, styled with a custom aurora / glassmorphism design system. The animations use a typewriter effect and parallax-tilt cards over an aurora backdrop, and the résumé renders in-browser with react-pdf.",
       chips: ["What are Harish's skills?", "What has he built?"],
     },
   },
