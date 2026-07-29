@@ -31,7 +31,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "react-scripts build",
-    "deploy": "node scripts/deploy.js"
+    "deploy": "node scripts/deploy.js",
+    "seed": "node scripts/seedContent.js"
   },
   "devDependencies": {
     "basic-ftp": "^5.3.1"

@@ -1,9 +1,10 @@
 import Lenis from "lenis";
 
 /**
- * Smooth scrolling powered by Lenis — the same library and feel as the
- * reference site (chiragchrg.netlify.app): lerp 0.1, driven by our own rAF
- * loop. Exposed as a module singleton so the navbar, deep-links and
+ * Smooth scrolling powered by Lenis — tuned for the heavy, momentum-rich
+ * glide of reference portfolios (e.g. adityathakur.me): a time-based
+ * duration + exponential ease-out (see startSmoothScroll), driven by our own
+ * rAF loop. Exposed as a module singleton so the navbar, deep-links and
  * back-to-top button can drive programmatic scrolls through it.
  *
  * Disabled entirely under prefers-reduced-motion, so the OS accessibility
@@ -39,10 +40,15 @@ export function startSmoothScroll() {
   if (lenis || prefersReducedMotion()) return lenis;
 
   lenis = new Lenis({
-    lerp: 0.1,
+    // Time-based glide (duration + exponential ease-out) instead of a
+    // framerate lerp. This is what gives the heavy, momentum-rich "buttery"
+    // feel of reference portfolios like adityathakur.me — the wheel/scroll
+    // settles over ~1.2s with a smooth ease rather than snapping.
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
     wheelMultiplier: 1,
-    touchMultiplier: 1,
+    touchMultiplier: 1.5,
     autoRaf: false, // we drive raf() below
   });
 

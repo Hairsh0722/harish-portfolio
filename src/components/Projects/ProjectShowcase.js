@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import ProjectCards from "./ProjectCards";
-import projects from "./projectsData";
+import { useContent } from "../content/ContentProvider";
 
 function ProjectShowcase() {
   const { t } = useTranslation();
+  const { projects } = useContent();
   const trackRef = useRef(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
@@ -36,7 +37,7 @@ function ProjectShowcase() {
       el.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
-  }, [update]);
+  }, [update, projects.length]);
 
   const scrollToIndex = (index) => {
     const el = trackRef.current;
@@ -89,7 +90,7 @@ function ProjectShowcase() {
             </button>
           )}
 
-          <div className="projects-track" ref={trackRef} data-reveal-children>
+          <div className="projects-track" ref={trackRef} data-reveal-children="pop">
             {projects.map((p) => {
               // Project copy is translated by the project's abbr key when a
               // translation exists; otherwise the English source data is used.

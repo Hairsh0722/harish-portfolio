@@ -18,6 +18,7 @@ import {
   onSnapshot,
   addDoc,
   deleteDoc,
+  updateDoc,
   doc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -130,6 +131,20 @@ export async function deletePin(id) {
     return;
   }
   const next = readJSON(PINS_KEY, []).filter((n) => n.id !== id);
+  writeJSON(PINS_KEY, next);
+  emitPins();
+}
+
+// Update a pin's editable fields (owner only; enforced by Firestore rules).
+// Only the passed fields are written — other fields on the doc are preserved.
+export async function updatePin(id, fields) {
+  if (firebaseReady) {
+    await updateDoc(doc(db, COLLECTION, id), fields);
+    return;
+  }
+  const next = readJSON(PINS_KEY, []).map((n) =>
+    n.id === id ? { ...n, ...fields } : n
+  );
   writeJSON(PINS_KEY, next);
   emitPins();
 }

@@ -1,9 +1,10 @@
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import educationData from "./educationData";
+import { useContent } from "../content/ContentProvider";
 
 function Education() {
   const { t } = useTranslation();
+  const { education: educationData } = useContent();
 
   // Optional fields resolve to "" (via defaultValue) so a card only renders
   // the pieces the locale files actually provide.
@@ -22,7 +23,7 @@ function Education() {
           </Trans>
         </h1>
 
-        <div className="edu-grid" data-reveal-children>
+        <div className="edu-grid" data-reveal-children="pop">
           {educationData.map(({ id, icon: Icon }) => {
             const field = opt(id, "field");
             const period = opt(id, "period");

@@ -3,15 +3,11 @@ import { Trans, useTranslation } from "react-i18next";
 import Techstack from "../About/Techstack";
 import Toolstack from "../About/Toolstack";
 import CountUp from "../helper/CountUp";
-
-const stats = [
-  { key: "experience", value: "5", suffix: "+" },
-  { key: "technologies", value: "13", suffix: "+" },
-  { key: "focus", value: "Full-stack" },
-];
+import { useContent } from "../content/ContentProvider";
 
 function Projects() {
   const { t } = useTranslation();
+  const { stats } = useContent();
   return (
     <section className="section section--page" id="skills">
       <div className="container-x" style={{ textAlign: "center" }}>
@@ -24,7 +20,7 @@ function Projects() {
           </Trans>
         </h1>
 
-        <div className="skill-stats" data-reveal-children>
+        <div className="skill-stats" data-reveal-children="pop">
           {stats.map((stat) => (
             <div
               key={stat.key}

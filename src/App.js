@@ -12,12 +12,16 @@ import Connect from "./components/Connect/Connect";
 import Guild from "./components/Guild/Guild";
 import ProjectShowcase from "./components/Projects/ProjectShowcase";
 import { BrowserRouter as Router } from "react-router-dom";
+import { ContentProvider } from "./components/content/ContentProvider";
 import DeepLinkScroll from "./components/DeepLinkScroll";
 import Aurora from "./components/helper/Aurora";
 import Cursor from "./components/helper/Cursor";
 import Reveal from "./components/helper/Reveal";
 import BackToTop from "./components/helper/BackToTop";
 import AiAssistant from "./components/Assistant/AiAssistant";
+import AdminPanel from "./components/Admin/AdminPanel";
+import VisitorPrompt from "./components/Visitors/VisitorPrompt";
+import VisitorDashboard from "./components/Visitors/VisitorDashboard";
 import useTheme from "./components/helper/useTheme";
 import {
   startSmoothScroll,
@@ -47,6 +51,7 @@ function App() {
 
   return (
     <Router>
+      <ContentProvider>
       <Preloader load={load} />
       {/* keyed on theme so the canvas layers re-read the palette tokens on switch */}
       <Aurora key={theme} />
@@ -71,7 +76,11 @@ function App() {
         <Footer />
         <BackToTop />
         <AiAssistant />
+        <AdminPanel />
+        <VisitorPrompt />
+        <VisitorDashboard />
       </div>
+      </ContentProvider>
     </Router>
   );
 }

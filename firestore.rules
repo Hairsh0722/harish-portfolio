@@ -9,6 +9,24 @@ rules_version = '2';
 // - Nobody may edit an existing pin from the client.
 service cloud.firestore {
   match /databases/{database}/documents {
+    // The portfolio owner — the only account allowed to edit site content.
+    function isOwner() {
+      return request.auth != null
+        && request.auth.uid == "iuZHEmlmHpTZlleOFw9VF5C6luf2";
+    }
+
+    // ---- Dynamic site content --------------------------------------------
+    // Read is public (the site loads it for every visitor); writes are
+    // owner-only and normally done from the Firebase console or
+    // scripts/seedContent.js. Covers the text overlays (content/{lang}), the
+    // structural collections, and the meta/site settings doc.
+    match /content/{lang}      { allow read: if true; allow write: if isOwner(); }
+    match /projects/{docId}    { allow read: if true; allow write: if isOwner(); }
+    match /education/{docId}   { allow read: if true; allow write: if isOwner(); }
+    match /techstack/{docId}   { allow read: if true; allow write: if isOwner(); }
+    match /toolstack/{docId}   { allow read: if true; allow write: if isOwner(); }
+    match /meta/{docId}        { allow read: if true; allow write: if isOwner(); }
+
     match /guildPins/{pinId} {
       allow read: if true;
 
@@ -25,7 +43,32 @@ service cloud.firestore {
       allow delete: if request.auth != null
         && request.auth.uid == "iuZHEmlmHpTZlleOFw9VF5C6luf2";
 
-      allow update: if false;
+      // Owner may edit a pin from the admin panel (message/name/loved, etc.).
+      allow update: if isOwner();
+    }
+
+    // Visitor log — private analytics.
+    // - Anyone may add a visit (validated below); the raw IP is never stored.
+    // - Only the owner may READ or DELETE the log (visitor data stays private).
+    // - A visitor may attach their own name once (empty -> a name), nothing else.
+    match /visits/{visitId} {
+      allow read: if request.auth != null
+        && request.auth.uid == "iuZHEmlmHpTZlleOFw9VF5C6luf2";
+
+      allow create: if
+        request.resource.data.createdAt == request.time
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 60;
+
+      allow update: if
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+        && resource.data.name == ''
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 60;
+
+      allow delete: if request.auth != null
+        && request.auth.uid == "iuZHEmlmHpTZlleOFw9VF5C6luf2";
     }
   }
 }

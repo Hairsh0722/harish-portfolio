@@ -150,6 +150,7 @@
     "asideTitle": "Reach me directly",
     "asideCopy": "Prefer a quick chat? Message me on WhatsApp — no form needed.",
     "chatWhatsApp": "Chat on WhatsApp",
+    "callPhone": "Call me",
     "form": {
       "name": "Name",
       "namePlaceholder": "Your name",
@@ -239,6 +240,33 @@
       "resume": "View résumé",
       "whatsapp": "Chat on WhatsApp",
       "open": "Open"
+    }
+  },
+  "visitors": {
+    "prompt": {
+      "title": "Welcome! Mind saying hi?",
+      "hint": "Drop your name so Harish knows you stopped by — totally optional.",
+      "placeholder": "Your name",
+      "save": "Say hi",
+      "skip": "Skip",
+      "dismiss": "Dismiss",
+      "aria": "Introduce yourself",
+      "thanks": "Thanks for stopping by, {{name}}! 👋"
+    },
+    "dash": {
+      "open": "Visitors",
+      "title": "Portfolio Visitors",
+      "close": "Close",
+      "visits": "visits",
+      "named": "named",
+      "countries": "countries",
+      "empty": "No visits logged yet.",
+      "anon": "Anonymous visitor",
+      "direct": "Direct",
+      "returning": "Returning",
+      "delete": "Delete visit",
+      "signOut": "Sign out",
+      "localNote": "Firebase isn't active — showing only this browser's local log."
     }
   }
 }

@@ -1,0 +1,80 @@
+// =============================================================
+//  Site content loader (Firestore)
+// -------------------------------------------------------------
+//  Reads the dynamic portfolio content from Firestore:
+//   • structural collections: projects, education, techstack,
+//     toolstack (+ the meta/site doc for skill stats)
+//   • text overlays: content/{en,hi,ta} — partial i18next trees
+//     that override the bundled locale JSON at render time.
+//
+//  Everything here is READ-ONLY from the client. Writes happen
+//  from the Firebase console or scripts/seedContent.js, gated by
+//  firestore.rules (owner-only). When Firebase isn't configured
+//  the caller falls back to the local defaults in
+//  components/content/registries.js, so the site always works.
+// =============================================================
+import { firebaseReady, db } from "./firebase";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+
+const LANGS = ["en", "hi", "ta"];
+
+// Fetch every doc in a collection as plain objects (id included).
+async function fetchCollection(name) {
+  const snap = await getDocs(collection(db, name));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/**
+ * Load the structural content collections.
+ * Returns null when Firebase is unset or the fetch fails — the caller then
+ * keeps the local defaults. Individual empty collections are returned as
+ * empty arrays so the caller can decide (per section) whether to fall back.
+ */
+export async function loadStructuralContent() {
+  if (!firebaseReady) return null;
+  try {
+    const [projects, education, techstack, toolstack, metaSnap] =
+      await Promise.all([
+        fetchCollection("projects"),
+        fetchCollection("education"),
+        fetchCollection("techstack"),
+        fetchCollection("toolstack"),
+        getDoc(doc(db, "meta", "site")),
+      ]);
+    const meta = metaSnap.exists() ? metaSnap.data() : {};
+    return {
+      projects,
+      education,
+      techstack,
+      toolstack,
+      stats: Array.isArray(meta.stats) ? meta.stats : [],
+    };
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("Content load failed — using bundled defaults.", err);
+    return null;
+  }
+}
+
+/**
+ * Load the per-language text overlays from content/{lang}.
+ * Returns a map { en: {...}, hi: {...}, ta: {...} } of partial i18next trees,
+ * skipping any language whose document is missing. Returns null on failure.
+ */
+export async function loadTextOverlays() {
+  if (!firebaseReady) return null;
+  try {
+    const snaps = await Promise.all(
+      LANGS.map((lang) => getDoc(doc(db, "content", lang)))
+    );
+    const overlays = {};
+    snaps.forEach((snap, i) => {
+      if (snap.exists()) overlays[LANGS[i]] = snap.data();
+    });
+    return overlays;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("Text overlay load failed — using bundled locales.", err);
+    return null;
+  }
+}

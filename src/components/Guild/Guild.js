@@ -1,19 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { BsPinAngle, BsHeart, BsHeartFill } from "react-icons/bs";
-import { FiTrash2, FiLogOut } from "react-icons/fi";
 import { GUILD_NOTES, avatarColor, initialOf } from "./guildData";
 import PinModal from "./PinModal";
-import OwnerLogin from "./OwnerLogin";
-import {
-  firebaseReady,
-  subscribePins,
-  subscribeOwner,
-  addPin,
-  deletePin,
-  ownerSignOut,
-  localOwnerEnable,
-} from "./guildStore";
+import { subscribePins, addPin } from "./guildStore";
 
 const LIKES_KEY = "guild.likes.v1"; // ids the visitor has hearted (per browser)
 
@@ -25,22 +15,18 @@ const NEW_TAPES = ["amber", "red", "teal", "green", "rose"];
 // deletable from the UI (edit guildData.js to change them).
 const SEEDS = GUILD_NOTES.map((n) => ({ ...n, seed: true }));
 
+// Owner moderation (edit / delete pins, mark "loved") now lives in the in-site
+// admin panel (sign in with ?admin). The board itself is purely visitor-facing.
 function Guild() {
   const { t } = useTranslation();
   const [openModal, setOpenModal] = useState(false);
   const [livePins, setLivePins] = useState([]);
   const [liked, setLiked] = useState(() => new Set());
-  const [owner, setOwner] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
 
-  // Real-time pins (shared via Firestore, or local fallback) + owner state.
+  // Real-time pins (shared via Firestore, or local fallback).
   useEffect(() => {
     const unsubPins = subscribePins(setLivePins);
-    const unsubOwner = subscribeOwner(setOwner);
-    return () => {
-      unsubPins();
-      unsubOwner();
-    };
+    return () => unsubPins();
   }, []);
 
   // Visitor's own hearts.
@@ -48,32 +34,6 @@ function Guild() {
     try {
       const raw = window.localStorage.getItem(LIKES_KEY);
       if (raw) setLiked(new Set(JSON.parse(raw)));
-    } catch (_) {
-      /* ignore */
-    }
-  }, []);
-
-  // Owner mode gate. ?guild=owner → sign-in (Firebase) or enable (local);
-  // ?guild=guest → sign out. The param is stripped so it isn't shared.
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const mode = params.get("guild");
-      if (mode === "owner") {
-        if (firebaseReady) setShowLogin(true);
-        else localOwnerEnable();
-      } else if (mode === "guest") {
-        ownerSignOut();
-      }
-      if (mode) {
-        params.delete("guild");
-        const q = params.toString();
-        window.history.replaceState(
-          {},
-          "",
-          window.location.pathname + (q ? `?${q}` : "") + window.location.hash
-        );
-      }
     } catch (_) {
       /* ignore */
     }
@@ -107,20 +67,6 @@ function Guild() {
     });
   };
 
-  // Owner-only: remove a pin from the shared wall.
-  const handleDelete = async (id) => {
-    // eslint-disable-next-line no-alert
-    if (!window.confirm(t("guild.confirmDelete"))) return;
-    try {
-      await deletePin(id);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("Guild delete failed:", err);
-      // eslint-disable-next-line no-alert
-      window.alert(t("guild.deleteError"));
-    }
-  };
-
   return (
     <section className="section section--page guild-section" id="guild">
       <div className="container-x" style={{ textAlign: "center" }}>
@@ -147,20 +93,6 @@ function Guild() {
           </button>
         </div>
 
-        {owner && (
-          <div className="guild-owner-chip" data-reveal>
-            <span className="guild-owner-chip__dot" aria-hidden="true" />
-            {t("guild.owner.active")}
-            <button
-              type="button"
-              className="guild-owner-chip__out"
-              onClick={() => ownerSignOut()}
-            >
-              <FiLogOut aria-hidden="true" /> {t("guild.owner.signOut")}
-            </button>
-          </div>
-        )}
-
         <div className="guild-recent" data-reveal>
           <span className="guild-recent__line" aria-hidden="true" />
           <span className="guild-recent__label">{t("guild.recent")}</span>
@@ -172,7 +104,7 @@ function Guild() {
             {t("guild.empty")}
           </p>
         ) : (
-          <div className="guild-board" data-reveal-children>
+          <div className="guild-board" data-reveal-children="pop">
             {notes.map((note) => {
               const isLiked = liked.has(note.id);
               const likeCount = (note.likes || 0) + (isLiked ? 1 : 0);
@@ -193,17 +125,6 @@ function Guild() {
                     >
                       {likeCount}
                     </span>
-                    {owner && !note.seed && (
-                      <button
-                        type="button"
-                        className="guild-note__delete"
-                        onClick={() => handleDelete(note.id)}
-                        aria-label={t("guild.delete")}
-                        title={t("guild.delete")}
-                      >
-                        <FiTrash2 />
-                      </button>
-                    )}
                   </div>
 
                   <p className="guild-note__message">{note.message}</p>
@@ -246,9 +167,6 @@ function Guild() {
 
       {openModal && (
         <PinModal onClose={() => setOpenModal(false)} onPinned={handlePinned} />
-      )}
-      {showLogin && !owner && (
-        <OwnerLogin onClose={() => setShowLogin(false)} />
       )}
     </section>
   );

@@ -88,6 +88,7 @@
   /* ---- Motion ---- */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1); /* springy overshoot for card pop-in */
   --dur-fast: 160ms;
   --dur-med: 320ms;
   --dur-slow: 560ms;
@@ -732,20 +733,34 @@ a:hover {
     flex-wrap: wrap;
   }
   /* Trim the wordmark so the hamburger + full control cluster fit on one line
-     on typical phones instead of forcing the phone CTA to wrap. */
+     on typical phones instead of forcing the phone CTA to wrap. The pill's top
+     row is hamburger + wordmark + control cluster inside a wrapping flexbox, so
+     whichever item refuses to shrink is the one that pushes a sibling onto a
+     second line. The wordmark is the designated flexible item: min-width:0 drops
+     its min-content contribution to zero (the name truncates via .brand-name
+     instead), so the row always stays on ONE line. */
   .nav-aurora .navbar-brand {
     font-size: 1.05rem;
     padding: 0.2rem 0.25rem;
+    flex: 0 1 auto;
+    min-width: 0;
   }
   .nav-actions {
     gap: 6px;
-    row-gap: 8px;
-    flex: 1; /* fill the row after the hamburger — no dead space in between */
-    margin-left: var(--space-2);
-    flex-wrap: wrap; /* never clip: drop to a second row if a phone is too narrow */
-    /* Right-align the cluster so, if it does wrap, the extra control drops to a
-       neat second row flush with the others instead of floating mid-pill. */
+    /* One line, always: the cluster keeps its intrinsic width (no grow, no
+       wrap) and `margin-left:auto` pins it flush right, so the wordmark — the
+       one shrinkable item — absorbs whatever width is left over instead of a
+       control dropping to a stray second row. */
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    margin-left: auto;
     justify-content: flex-end;
+  }
+  /* The accent/language switchers are wrappers around their pills; keep them
+     rigid so the pills inside never get squeezed out of shape. */
+  .nav-actions .accent-switch,
+  .nav-actions .lang-switch {
+    flex: 0 0 auto;
   }
   .nav-actions .nav-divider {
     display: none;
@@ -1436,8 +1451,8 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   align-items: center;
   justify-content: flex-start;
   flex-wrap: wrap;
-  gap: var(--space-3);
-  padding: 0.4rem 0.5rem;
+  gap: var(--space-2);
+  padding: 0.35rem 0.45rem;
   border-radius: var(--radius-pill);
   background: var(--surface-strong);
   border: 1px solid var(--glass-border);
@@ -1506,6 +1521,10 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   position: relative;
   z-index: 3;
   display: inline-flex;
+  /* Never let the wordmark itself break across two lines (the mobile row keeps
+     it on one line with the controls — see the max-width:991.98px block, where
+     min-width:0 makes it the shrinkable item). */
+  white-space: nowrap;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.25rem;
@@ -1534,6 +1553,20 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 .nav-aurora .navbar-brand .dot {
   color: var(--accent);
 }
+/* The name is its own box so it can truncate gracefully as a last resort
+   (never wrap to a second line, never clip mid-glyph). */
+.nav-aurora .brand-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* "HS" monogram — swaps in for the full name only on the narrowest phones
+   (see the max-width:359.98px block). */
+.nav-aurora .brand-initials {
+  display: none;
+  white-space: nowrap;
+}
 /* green "online" status dot before the HS wordmark */
 .nav-aurora .brand-dot {
   flex: 0 0 auto;
@@ -1551,14 +1584,14 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 .nav-aurora .nav-link {
   position: relative;
   font-family: var(--font-body) !important;
-  font-size: 0.94rem !important;
+  font-size: 0.9rem !important;
   font-weight: 500 !important;
   color: var(--text-secondary) !important;
-  padding: 0.5rem 0.95rem !important;
+  padding: 0.45rem 0.7rem !important;
   border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
 }
 .nav-aurora .nav-link:hover {
@@ -1642,8 +1675,20 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
     width: 0;
     min-width: 100%;
   }
+  /* Buttery menu reveal. react-bootstrap toggles Bootstrap's `.collapsing`
+     class and animates `height` 0<->target; Bootstrap's default is a flat
+     `.35s ease`, which reads slightly abrupt. Override it with the site's
+     `--ease-out` curve (a soft decelerate) and promote the height to its own
+     layer so the unfurl stays on the compositor. The card contents then fade +
+     lift in on the SAME curve and duration, so height and content settle
+     together in one motion instead of two overlapping ones. */
+  .nav-aurora .navbar-collapse.collapsing {
+    transition: height var(--dur-med) var(--ease-out) !important;
+    overflow: hidden;
+    will-change: height;
+  }
   .nav-aurora .navbar-collapse.show .navbar-nav {
-    animation: nav-menu-in var(--dur-med) var(--ease-out);
+    animation: nav-menu-in var(--dur-med) var(--ease-out) both;
   }
   /* 3 equal columns flowing across rows, so any number of items wraps cleanly
      (7 items -> 3 / 3 / 1). `minmax(0, 1fr)` lets every cell shrink to an even
@@ -1702,6 +1747,18 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   }
 }
 
+/* Reduced-motion users: snap the menu open/closed. The `!important` height
+   override above would otherwise re-enable the transition Bootstrap disables
+   for this media query, so null it out and skip the content animation too. */
+@media (prefers-reduced-motion: reduce) {
+  .nav-aurora .navbar-collapse.collapsing {
+    transition: none !important;
+  }
+  .nav-aurora .navbar-collapse.show .navbar-nav {
+    animation: none;
+  }
+}
+
 /* -------------------------------------------------------------------
    Mobile nav sizing — MUST live after the base .nav-aurora rules above.
    The earlier @media blocks (near the top of the file) are declared
@@ -1709,11 +1766,46 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
    those overrides get dropped. Declaring the phone layout here (after
    the base block) makes it authoritative.
 
-   Goal: show the FULL labeled card (theme + fullscreen + accent name + "EN"
-   label + phone) on every phone, exactly like tablet/desktop. Rather than
-   collapsing to icon-only chips on narrow phones, the control cluster is
-   allowed to wrap to a neat second row inside the pill so nothing clips.
+   Goal: the wordmark, hamburger and the whole control cluster share ONE
+   baseline-aligned row at every width. The cluster keeps all five controls
+   (theme, fullscreen, accent, language, phone) — what gives way as the viewport
+   narrows is text, in this order: the accent/language pill LABELS collapse to
+   icon-only circles (<=575.98px), the wordmark scales down fluidly (<=480px),
+   then the name becomes the "HS" monogram (<=359.98px).
    ------------------------------------------------------------------- */
+@media (max-width: 575.98px) {
+  /* Icon-only accent + language circles. Their text labels ("Ocean" / "EN") are
+     the widest, least essential part of the row — dropping them first buys the
+     ~90px the wordmark needs to stay on the same line as the controls. */
+  .accent-pill .accent-name,
+  .accent-pill .accent-caret,
+  .lang-pill > span,
+  .lang-pill .lang-caret {
+    display: none;
+  }
+  .lang-pill,
+  .accent-pill {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+  .nav-aurora .theme-toggle,
+  .nav-cta {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    font-size: 0.95rem;
+  }
+  .nav-actions {
+    gap: 5px;
+  }
+}
+
 @media (max-width: 480px) {
   /* Outer gutters: pull the pill in slightly from the screen edges so it's a
      touch narrower than edge-to-edge, while still leaving enough width for the
@@ -1731,12 +1823,12 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
        never wrap (see .nav-actions: nowrap). */
     flex-wrap: wrap;
   }
-  /* With the brand wordmark gone the row is just: hamburger on the left, the
-     full control cluster flush right, both vertically centred on ONE line.
-     nowrap + margin-left:auto guarantees the cluster can't spill onto a stray
-     second row (which left the hamburger floating alone before). */
+  /* The row is: hamburger on the left, the wordmark next to it, the control
+     cluster flush right — all vertically centred on ONE line. nowrap +
+     margin-left:auto guarantees the cluster can't spill onto a stray second row
+     (which left the hamburger and wordmark floating alone before). */
   .nav-actions {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     flex-wrap: nowrap;
     gap: 5px;
     margin-left: auto;
@@ -1744,22 +1836,25 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   }
   /* Round toggles: compact but still comfortably tappable. */
   .nav-aurora .theme-toggle,
-  .nav-cta {
+  .nav-cta,
+  .lang-pill,
+  .accent-pill {
     width: 32px;
     height: 32px;
     min-width: 32px;
     font-size: 0.9rem;
   }
-  /* Accent + language stay as labeled pills ("Ocean" / "EN"), tightened so the
-     whole cluster fits one row down to ~360px (below that they go icon-only —
-     see the max-width:359.98px block after this one). */
-  .lang-pill,
-  .accent-pill {
-    height: 32px;
-    padding: 0 0.4rem;
-    gap: 0.25rem;
-    font-size: 0.75rem;
-    flex: 0 0 auto;
+  /* Fluid wordmark: scales with the viewport so it keeps sharing the row with
+     the controls instead of being pushed below them. The floor only matters
+     under 360px, where the "HS" monogram takes over anyway. */
+  .nav-aurora .navbar-brand {
+    font-size: clamp(0.72rem, 3.1vw, 1.05rem);
+    padding: 0.2rem 0.15rem;
+    gap: 0.35rem;
+  }
+  .nav-aurora .brand-dot {
+    width: 8px;
+    height: 8px;
   }
   .nav-aurora .navbar-toggler {
     padding: 0.3rem 0.4rem !important;
@@ -1794,28 +1889,32 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
 
 /* -------------------------------------------------------------------
    Tiny / older phones (~320px, e.g. iPhone SE 1st-gen, Galaxy Fold cover).
-   There isn't room for the "Ocean" and "EN" text labels alongside the
-   hamburger, so the accent + language pills collapse to icon-only circles.
-   This keeps the hamburger + control cluster on ONE aligned row instead of
-   wrapping — the layout stays clean on the very narrowest devices.
+   Even with the pills already icon-only, there isn't room for the full name
+   beside the hamburger and the five controls — so the wordmark becomes the "HS"
+   monogram. That keeps everything on ONE aligned row (rather than truncating
+   the name to "Harish Siv…" or wrapping the cluster) on the narrowest devices.
    ------------------------------------------------------------------- */
 @media (max-width: 359.98px) {
-  .accent-pill .accent-name,
-  .lang-pill > span,
-  .lang-pill .lang-caret,
-  .accent-pill .accent-caret {
+  .nav-aurora .brand-name {
     display: none;
   }
-  .lang-pill,
-  .accent-pill {
-    width: 32px;
-    min-width: 32px;
-    padding: 0;
-    justify-content: center;
-    gap: 0;
+  .nav-aurora .brand-initials {
+    display: inline;
+  }
+  .nav-aurora .navbar-brand {
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
   }
   .nav-actions {
     gap: 4px;
+  }
+  .nav-aurora .theme-toggle,
+  .nav-cta,
+  .lang-pill,
+  .accent-pill {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
   }
 }
 
@@ -3714,6 +3813,14 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   [data-reveal="fade"] {
     transform: none;
   }
+  /* Pop: cards scale up from small with a springy overshoot as they enter. */
+  [data-reveal="pop"],
+  [data-reveal-children="pop"] > * {
+    opacity: 0;
+    transform: scale(0.82) translateY(24px);
+    transition: opacity var(--dur-med) var(--ease-out),
+      transform var(--dur-slow) var(--ease-pop);
+  }
   [data-reveal].is-revealed,
   [data-reveal-children] > *.is-revealed {
     opacity: 1;
@@ -3838,9 +3945,13 @@ html.theme-vt::view-transition-new(root) {
 /* ---- Hero recede --------------------------------------------------
    As the first viewport scrolls away the hero gently drifts up and
    dissolves, handing off to the content below. Applied to .hero itself
-   (no reveal transform lives on this element, so nothing fights it). */
+   (no reveal transform lives on this element, so nothing fights it).
+
+   Desktop only (>900px): below that the hero stacks (see the max-width:900px
+   block) so the photo card sits *below* the 0–92vh scroll range — the fade
+   would dim the profile picture just as it scrolls into view. */
 @supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 901px) {
     .hero {
       /* NOTE: use animation-* longhands, NOT the `animation` shorthand.
          The shorthand resets `animation-timeline` to `auto`, and cssnano
@@ -4485,4 +4596,564 @@ html.theme-vt::view-transition-new(root) {
   .guild-note:hover {
     transform: translateY(-4px);
   }
+}
+
+/* =============================================================
+   VISITOR GREETER + OWNER DASHBOARD
+   - .pv-prompt : visitor-facing "who's visiting?" card (bottom-left)
+   - .pv-launch : owner-only launcher pill (bottom-left)
+   - .pv-dash   : owner-only visitor log panel
+   Placed left so they never collide with the assistant FAB (right).
+   ============================================================= */
+.pv-prompt {
+  position: fixed;
+  left: clamp(16px, 4vw, 32px);
+  bottom: clamp(16px, 4vw, 32px);
+  z-index: 1002;
+  width: min(320px, calc(100vw - 32px));
+  padding: var(--space-5);
+  background: var(--surface-strong);
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(var(--blur-md)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--blur-md)) saturate(140%);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 var(--glass-highlight);
+  color: var(--text-primary);
+  animation: pvSlideIn var(--dur-med) var(--ease-out) both;
+}
+@keyframes pvSlideIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.pv-prompt__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 8px;
+  line-height: 0;
+}
+.pv-prompt__close:hover { color: var(--text-primary); }
+.pv-prompt__wave { font-size: 1.6rem; display: block; margin-bottom: 4px; }
+.pv-prompt__title { font-weight: 700; margin: 0 0 4px; }
+.pv-prompt__hint {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4);
+  line-height: 1.4;
+}
+.pv-prompt__form { display: flex; gap: 8px; }
+.pv-prompt__input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+.pv-prompt__input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.pv-prompt__save {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--grad-accent);
+  color: var(--text-on-accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform var(--dur-med) var(--ease-out);
+}
+.pv-prompt__save:hover { transform: translateY(-1px); }
+.pv-prompt__skip {
+  display: block;
+  margin: 10px auto 0;
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.pv-prompt__skip:hover { color: var(--text-secondary); }
+.pv-prompt__thanks { margin: 0; font-weight: 600; text-align: center; }
+
+/* ---- owner launcher ---- */
+.pv-launch {
+  position: fixed;
+  left: clamp(16px, 4vw, 32px);
+  bottom: clamp(16px, 4vw, 32px);
+  z-index: 1002;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px 0 12px;
+  height: 46px;
+  border: 1px solid var(--glass-border-strong);
+  border-radius: 14px;
+  background: var(--surface-strong);
+  color: var(--text-primary);
+  backdrop-filter: blur(var(--blur-md));
+  -webkit-backdrop-filter: blur(var(--blur-md));
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out);
+}
+.pv-launch:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.pv-launch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.pv-launch__count {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--grad-accent);
+  color: var(--text-on-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ---- owner dashboard panel ---- */
+.pv-dash {
+  position: fixed;
+  left: clamp(16px, 4vw, 32px);
+  bottom: calc(clamp(16px, 4vw, 32px) + 58px);
+  z-index: 1002;
+  width: min(400px, calc(100vw - 32px));
+  max-height: min(70vh, 640px);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  animation: pvSlideIn var(--dur-med) var(--ease-out) both;
+}
+.pv-dash__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+}
+.pv-dash__head strong { display: inline-flex; align-items: center; gap: 8px; }
+.pv-dash__close {
+  display: inline-flex;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 8px;
+}
+.pv-dash__close:hover { color: var(--text-primary); }
+.pv-dash__stats {
+  display: flex;
+  gap: var(--space-5);
+  padding: var(--space-3) var(--space-5);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--glass-border);
+}
+.pv-dash__stats b { color: var(--text-primary); font-size: 1.05rem; }
+.pv-dash__note {
+  margin: 0;
+  padding: 8px var(--space-5);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.pv-dash__list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+}
+.pv-dash__empty { color: var(--text-muted); text-align: center; padding: var(--space-5); margin: 0; }
+
+.pv-visit {
+  padding: 10px 10px;
+  border-radius: 12px;
+  transition: background var(--dur-med) var(--ease-out);
+}
+.pv-visit:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.pv-visit + .pv-visit { border-top: 1px solid var(--glass-border); }
+.pv-visit__row { display: flex; align-items: center; gap: 8px; }
+.pv-visit__name { font-weight: 600; }
+.pv-visit__name.is-anon { font-weight: 500; color: var(--text-muted); font-style: italic; }
+.pv-visit__when { margin-left: auto; font-size: 0.74rem; color: var(--text-muted); white-space: nowrap; }
+.pv-visit__del {
+  display: inline-flex;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 6px;
+}
+.pv-visit__del:hover { color: #f87171; }
+.pv-visit__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 5px;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+.pv-visit__badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.pv-dash__foot {
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--glass-border);
+}
+.pv-dash__signout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.pv-dash__signout:hover { color: var(--text-primary); border-color: var(--glass-border-strong); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-prompt,
+  .pv-dash { animation: none !important; }
+  .pv-launch:hover,
+  .pv-prompt__save:hover { transform: none; }
+}
+
+/* =============================================================
+   Admin content editor (owner-only). Uses the theme tokens so it
+   follows light/dark and the accent switcher automatically.
+   ============================================================= */
+.admin-fab {
+  position: fixed;
+  /* Aligns with the owner-only Visitors launcher (.pv-launch) and stacks just
+     above it so the two owner controls don't overlap bottom-left. */
+  left: clamp(16px, 4vw, 32px);
+  bottom: calc(clamp(16px, 4vw, 32px) + 58px);
+  z-index: 1200;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border-strong);
+  background: var(--surface-strong);
+  backdrop-filter: blur(12px);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.admin-fab:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.admin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  justify-content: flex-end;
+  background: var(--bg-veil);
+  backdrop-filter: blur(4px);
+}
+.admin-drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  height: 100%;
+  border-radius: 0;
+  border-left: 1px solid var(--glass-border-strong);
+  padding: 0;
+  overflow: hidden;
+}
+
+.admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+}
+.admin-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text-primary);
+}
+.admin-head__actions { display: inline-flex; align-items: center; gap: var(--space-2); }
+.admin-signout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.admin-signout:hover { color: var(--text-primary); border-color: var(--glass-border-strong); }
+.admin-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.admin-close:hover { border-color: var(--accent); color: var(--accent); }
+
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+}
+.admin-tabs--sub { padding: 0 0 var(--space-3); border: 0; }
+.admin-tab {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.admin-tab:hover { color: var(--text-primary); }
+.admin-tab.is-active {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.admin-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5);
+}
+.admin-hint {
+  margin: 0 0 var(--space-4);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.admin-hint code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--surface);
+  font-size: 0.82em;
+}
+
+.admin-list { display: flex; flex-direction: column; gap: var(--space-4); }
+.admin-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+.admin-row--stack { display: block; }
+.admin-row__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.admin-field { display: flex; flex-direction: column; gap: 5px; }
+.admin-field__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.admin-field .form-input { width: 100%; }
+
+.admin-row__del {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.admin-row__del:hover { color: #fca5a5; border-color: #fca5a5; }
+.admin-row__remove { margin-top: var(--space-3); }
+.admin-add { align-self: flex-start; }
+
+.admin-json {
+  width: 100%;
+  min-height: 46vh;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.admin-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--glass-border);
+}
+.admin-toast {
+  margin-right: auto;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.admin-toast--ok { color: #86efac; background: rgba(34, 197, 94, 0.12); }
+.admin-toast--err { color: #fca5a5; background: rgba(248, 113, 113, 0.12); }
+
+.admin-field__hint {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  opacity: 0.85;
+}
+.admin-field__hint--err { color: #fca5a5; opacity: 1; margin: 0 0 var(--space-2); }
+
+.admin-text__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.admin-adv-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.admin-groups { display: flex; flex-direction: column; gap: var(--space-4); }
+.admin-group { padding: var(--space-4); border-radius: var(--radius-md); }
+.admin-group__title {
+  margin: 0 0 var(--space-3);
+  font-size: 0.95rem;
+  color: var(--accent);
+}
+.admin-group__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-3);
+}
+
+.admin-guild__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.admin-guild__meta { font-size: 0.78rem; color: var(--text-secondary); }
+
+/* Auto-translation affordances: the "auto" chip on the HI/TA sub-tabs, the
+   read-only banner on those views, and the live progress line in the footer. */
+.admin-tab__badge {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.admin-hint--auto {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--surface);
+}
+.admin-hint--auto svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--accent);
+}
+/* Read-only translation previews: dimmed but still legible (a plain disabled
+   input washes out to unreadable in the light theme). */
+.admin-text .form-input:disabled,
+.admin-text .form-input[readonly] {
+  opacity: 0.75;
+  cursor: default;
+  color: var(--text-secondary);
+}
+.admin-mt {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.admin-mt svg { color: var(--accent); }
+
+@media (max-width: 640px) {
+  .admin-drawer { width: 100%; }
+  .admin-fab span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-fab:hover { transform: none; }
 }

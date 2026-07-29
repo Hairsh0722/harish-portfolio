@@ -39,13 +39,21 @@ Portfolio-master/
 │   ├── components/
 │   │   ├── Home/            # Hero, intro, typewriter (Type.js), code terminal
 │   │   ├── About/           # About card, tech/tool stack (Techstack/Toolstack), GitHub calendar
-│   │   ├── Education/       # Education timeline cards (educationData.js)
-│   │   ├── Projects/        # Skills + project grid (Projects.js, ProjectCards.js,
-│   │   │                    #   projectsData.js) plus the featured ProjectShowcase.js
+│   │   ├── Education/       # Education timeline cards (list from content store)
+│   │   ├── Projects/        # Skills + project grid (Projects.js, ProjectCards.js)
+│   │   │                    #   plus the featured ProjectShowcase.js
+│   │   ├── content/         # Dynamic content: ContentProvider (Firestore loader +
+│   │   │                    #   useContent hook), registries.js (icon/image keys +
+│   │   │                    #   bundled fallback content). See CONTENT.md.
+│   │   ├── Admin/           # Owner-only in-site content editor: AdminPanel.js
+│   │   │                    #   (tabbed editor, gated on Guild owner auth) +
+│   │   │                    #   adminStore.js (Firestore writes)
 │   │   ├── Resume/          # PDF resume viewer — ResumeNew + lazy ResumePdf (reveals on request)
 │   │   ├── Guild/           # Guild Board — shared visitor wall (Firestore + localStorage
-│   │   │                    #   fallback, owner-only delete): Guild.js, guildStore.js,
-│   │   │                    #   PinModal.js, OwnerLogin.js, guildData.js
+│   │   │                    #   fallback): Guild.js, guildStore.js, PinModal.js,
+│   │   │                    #   OwnerLogin.js, guildData.js. Owner moderation
+│   │   │                    #   (edit/delete/love pins) lives in the Admin panel's
+│   │   │                    #   Guild tab; guildStore also handles owner auth.
 │   │   ├── Contact/         # EmailJS contact form + WhatsApp CTA
 │   │   ├── Connect/         # Social links section
 │   │   ├── Assistant/       # Client-side AI assistant (knowledgeBase.js, matchIntent.js)
@@ -87,11 +95,14 @@ Most user-facing **text is now translated** — it lives in `src/locales/{en,hi,
 | Contact / connect / footer copy | `src/locales/*.json` → `contact.*`, `connect.*`, `footer.*` |
 | Add / edit a UI language | add `src/locales/<lang>.json`, register in `src/i18n.js`, add to `helper/LanguageSwitcher.js` |
 | Hero social links | `src/components/Home/Home.js` |
-| Tech stack icons | `src/components/About/Techstack.js` |
-| Tools icons | `src/components/About/Toolstack.js` |
-| Project cards / entries | `src/components/Projects/projectsData.js` |
+| Tech stack icons | Firestore `techstack` collection (icon-key registry + fallback in `src/components/content/registries.js`) |
+| Tools icons | Firestore `toolstack` collection (icon-key registry + fallback in `src/components/content/registries.js`) |
+| Project cards / entries | Firestore `projects` collection (fallback: `DEFAULT_PROJECTS` in `src/components/content/registries.js`) — see `CONTENT.md` |
 | Featured showcase section | `src/components/Projects/ProjectShowcase.js` |
-| Education timeline entries | `src/components/Education/educationData.js` |
+| Education timeline entries | Firestore `education` collection (fallback: `DEFAULT_EDUCATION` in `registries.js`) — see `CONTENT.md` |
+| Dynamic content (DB + fallback, icon/image keys) | `src/components/content/` — `ContentProvider.js`, `registries.js`; loader in `src/services/content.js`; seed via `npm run seed` (`scripts/seedContent.js`). Full schema in `CONTENT.md` |
+| In-site content editor (owner-only) | `src/components/Admin/` — `AdminPanel.js` (gated on Guild owner auth; `?admin` to sign in; includes a **Guild** tab to edit/delete/love pins) + `adminStore.js` (Firestore writes). Styles: `.admin-*` in `style.css` |
+| Auto-translation (English → Hindi/Tamil) | `src/services/translate.js` — masking rules, `GLOSSARY` of protected proper nouns, provider chain. Driven by `publishText()` in `AdminPanel.js`. See **Automatic translation** in `CONTENT.md` |
 | Guild Board behaviour / storage | `src/components/Guild/guildStore.js` (Firestore + localStorage fallback) |
 | AI assistant answers / intents | `src/components/Assistant/knowledgeBase.js` |
 | Resume PDF | `src/Assets/harish_resume_new.pdf` |
@@ -110,14 +121,14 @@ The site is one page; the navbar scrolls between sections by `id`. Order and ids
 | `skills` | Professional skillset and tools |
 | `projects` | Skills + project grid, followed by the featured `ProjectShowcase` block |
 | `resume` | Embedded resume viewer (hidden until requested) with download |
-| `guild` | Guild Board — shared visitor wall (Firestore + localStorage fallback, owner-only delete) |
+| `guild` | Guild Board — shared visitor wall (Firestore + localStorage fallback; owner edits/deletes pins from the Admin panel's Guild tab) |
 | `contact` | EmailJS contact form + WhatsApp CTA |
 | _connect_ | Social links (below contact; not a navbar item) |
 
 ## Conventions & Constraints
 
 - **Component style:** functional components, plain CSS (no CSS modules/Tailwind). Match existing patterns in `src/components/` rather than introducing new styling systems.
-- **Internationalization:** never hardcode user-facing text in JSX. Add a key under the right namespace in **all three** locale files and render with `useTranslation()`'s `t()`. Keep the three files structurally in sync.
+- **Internationalization:** never hardcode user-facing text in JSX. Add a key under the right namespace in **all three** locale files and render with `useTranslation()`'s `t()`. Keep the three files structurally in sync. Copy edited through the admin panel is written in English only — the panel machine-translates it into Hindi/Tamil on save (`src/services/translate.js`), so any new content-bearing key must be a real i18n key for that to reach the other languages.
 - **Theming:** support both light and dark via the CSS custom properties in `style.css` — don't hardcode colors; use the `--accent`/token variables so the accent switcher keeps working.
 - **Accessibility:** respect `prefers-reduced-motion` (the smooth-scroll and animations already branch on it); keep ARIA labels on interactive elements (nav, buttons, social links, the assistant, form fields).
 - **Performance:** the aurora background is GPU-friendly and fixed-position — avoid changes that force repaints on scroll. Scrolling is driven by Lenis; route section navigation through `scrollToSection.js` rather than fighting it with manual `scrollTo`.

@@ -30,8 +30,8 @@ const NAV_ITEMS = [
   { id: "contact", icon: <AiOutlineMessage /> },
 ];
 
-// The phone CTA opens WhatsApp directly. Mirrors Contact.js.
-const WHATSAPP_NUMBER = "919551363232"; // +91 95513 63232
+// The phone CTA opens the device dialer with the number pre-filled.
+const PHONE_NUMBER = "+919551363232"; // +91 95513 63232
 
 function NavBar({ theme, onToggleTheme }) {
   const { t } = useTranslation();
@@ -244,6 +244,24 @@ function NavBar({ theme, onToggleTheme }) {
       }`}
     >
       <Container className="nav-shell">
+        {/* Name wordmark: an "online" status dot + the owner's name. Acts as a
+            home button (scrolls to the hero). Sizes down on phones via the
+            .navbar-brand rules in the responsive CSS blocks; below ~360px the
+            full name swaps for the "HS" monogram so the wordmark, hamburger and
+            control cluster all stay on ONE line (the button keeps its aria-label
+            either way, so the accessible name never changes). */}
+        <Navbar.Brand
+          as="button"
+          type="button"
+          onClick={() => go("home")}
+          aria-label={t("nav.home", "Home")}
+        >
+          <span className="brand-dot" aria-hidden="true" />
+          <span className="brand-name">Harish Siva</span>
+          <span className="brand-initials" aria-hidden="true">
+            HS
+          </span>
+        </Navbar.Brand>
         {/* Scroll progress = a single line that follows the pill OUTLINE
             along its bottom edge only: it starts at the left cap, runs the
             bottom, and curves up to the right cap, filling left->right as the
@@ -325,12 +343,10 @@ function NavBar({ theme, onToggleTheme }) {
           <LanguageSwitcher />
           <a
             className="nav-cta"
-            href={`https://wa.me/${WHATSAPP_NUMBER}`}
-            target="_blank"
-            rel="noreferrer"
+            href={`tel:${PHONE_NUMBER}`}
             data-magnetic="0.4"
-            aria-label={t("contact.chatWhatsApp")}
-            title={t("contact.chatWhatsApp")}
+            aria-label={t("contact.callPhone")}
+            title={t("contact.callPhone")}
           >
             <FiPhoneCall aria-hidden="true" />
           </a>
