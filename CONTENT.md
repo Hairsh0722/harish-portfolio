@@ -11,16 +11,27 @@ so it always works with no backend.
 
 ## First-time setup
 
-1. Set `REACT_APP_FIREBASE_*` in `.env` (see `.env.example`).
-2. Publish the rules in [`firestore.rules`](firestore.rules) (Firestore → Rules).
+1. Set `REACT_APP_FIREBASE_*` in `.env.local` (see `.env.example`).
+2. Publish the rules in [`firestore.rules`](firestore.rules):
+   ```bash
+   npx firebase-tools login   # once per machine
+   npm run deploy:rules       # firebase deploy --only firestore:rules
+   ```
+   The target project comes from [`.firebaserc`](.firebaserc).
 3. Seed the database from the current content:
    ```bash
-   # .env also needs the owner login (writes are owner-only):
+   # .env.local also needs the owner login (writes are owner-only):
    #   SEED_OWNER_EMAIL=you@example.com
    #   SEED_OWNER_PASSWORD=••••••••
    npm run seed
    ```
    Re-running `npm run seed` is safe — it upserts by document ID.
+
+> **Every rules change needs step 2 again.** Firestore denies any path its
+> *published* rules don't match, so a rule that exists only in the repo file has
+> no effect: saves fail with *“Missing or insufficient permissions”* even when
+> you're signed in as the owner. If the admin panel shows that message, run
+> `npm run deploy:rules`.
 
 ## Editing in the browser (owner-only admin panel)
 
@@ -64,19 +75,32 @@ read-only previews of that output.
   (`<1>…</1>`), URLs/emails, values with no letters (`2017 – 2021`), education
   `institution`, and the proper nouns in the `GLOSSARY` in
   [`src/services/translate.js`](src/services/translate.js) (Harish Siva, iOPEX,
-  React, PHP…). Add a brand name there to protect it. If a marker doesn't survive
-  the round trip, that one string stays English rather than shipping broken
-  markup.
+  React, PHP…). Add a brand name there to protect it — the list also covers
+  terms a translator mangles outright (`APIs` → "शहद की मक्खी"/honey bee,
+  `Postman` → "डाकिया"/mailman, `Firestore` → "நெருப்புக் கடை"/fire shop) and
+  fixed English labels whose generic translation is wrong in context (`Resume` →
+  "फिर शुरू करना"/start again). Matching is case-sensitive and on word
+  boundaries, so `Esc` doesn't mask the start of "Escape". If a marker doesn't
+  survive the round trip, that one string stays English rather than shipping
+  broken markup.
 - **Language-independent by design:** project `title` and `tags`, and the
   Tech/Tools `label`s, render as typed in every language — they're product and
   technology names. Stat `value`/`suffix` are numbers; their labels live in the
   Text tab (`skills.stats.<key>`) and do get translated.
 - **Providers** (first success wins, all client-side from the owner's browser):
   Google Cloud Translation v2 when `REACT_APP_GOOGLE_TRANSLATE_KEY` is set →
-  the keyless `translate.googleapis.com` endpoint → MyMemory. The keyless ones
-  are free and unofficial, so they can rate-limit; results are cached in
-  `localStorage`, so re-saving costs no requests. If nothing is reachable the
-  English still saves and the toast says the other languages were left alone.
+  keyless `clients5.google.com` (`dict-chrome-ex`) → keyless
+  `translate.googleapis.com` (`gtx`) → MyMemory. The keyless ones are free and
+  unofficial, so they can rate-limit; results are cached in `localStorage`, so
+  re-saving costs no requests. If nothing is reachable the English still saves
+  and the toast says the other languages were left alone.
+- **If every provider reports "Failed to fetch"** the network is the problem,
+  not the services. `clients5.google.com` leads the chain because it's the only
+  keyless endpoint that sends `Access-Control-Allow-Origin: *` — the other two
+  need something in front of them to add it. Corporate TLS-inspecting proxies
+  commonly reset `translate.googleapis.com` and return 403 for MyMemory, so on
+  such a network set `REACT_APP_GOOGLE_TRANSLATE_KEY`, or save from a network
+  that isn't filtered. The toast names each provider's failure.
 - **Visitors never call a translation service** — they read the saved
   `content/{lang}` docs, so the public site stays fast and offline-safe.
 
