@@ -13,14 +13,13 @@
 //  the caller falls back to the local defaults in
 //  components/content/registries.js, so the site always works.
 // =============================================================
-import { firebaseReady, db } from "./firebase";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { firebaseReady, getDb } from "./firebase";
 
 const LANGS = ["en", "hi", "ta"];
 
 // Fetch every doc in a collection as plain objects (id included).
-async function fetchCollection(name) {
-  const snap = await getDocs(collection(db, name));
+async function fetchCollection(fs, db, name) {
+  const snap = await fs.getDocs(fs.collection(db, name));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
@@ -33,13 +32,14 @@ async function fetchCollection(name) {
 export async function loadStructuralContent() {
   if (!firebaseReady) return null;
   try {
+    const { db, fs } = await getDb();
     const [projects, education, techstack, toolstack, metaSnap] =
       await Promise.all([
-        fetchCollection("projects"),
-        fetchCollection("education"),
-        fetchCollection("techstack"),
-        fetchCollection("toolstack"),
-        getDoc(doc(db, "meta", "site")),
+        fetchCollection(fs, db, "projects"),
+        fetchCollection(fs, db, "education"),
+        fetchCollection(fs, db, "techstack"),
+        fetchCollection(fs, db, "toolstack"),
+        fs.getDoc(fs.doc(db, "meta", "site")),
       ]);
     const meta = metaSnap.exists() ? metaSnap.data() : {};
     return {
@@ -64,8 +64,9 @@ export async function loadStructuralContent() {
 export async function loadTextOverlays() {
   if (!firebaseReady) return null;
   try {
+    const { db, fs } = await getDb();
     const snaps = await Promise.all(
-      LANGS.map((lang) => getDoc(doc(db, "content", lang)))
+      LANGS.map((lang) => fs.getDoc(fs.doc(db, "content", lang)))
     );
     const overlays = {};
     snaps.forEach((snap, i) => {

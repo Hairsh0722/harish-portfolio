@@ -96,18 +96,33 @@ export function ContentProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    if (!firebaseReady) return undefined;
     let cancelled = false;
-    // Guard against setting state after unmount (the async load resolves late).
-    if (firebaseReady) {
+
+    // Wait for idle before touching Firestore. The bundled defaults are already
+    // on screen, so there is nothing to wait for visually — and deferring keeps
+    // the (dynamically imported) Firestore chunk from competing with the first
+    // paint for network and main-thread time.
+    const run = () => {
+      // Guard against setting state after unmount (the load resolves late).
+      if (cancelled) return;
       load().catch((err) => {
         if (!cancelled) {
           // eslint-disable-next-line no-console
           console.warn("Content load failed — using bundled defaults.", err);
         }
       });
-    }
+    };
+
+    const idle = window.requestIdleCallback;
+    const handle = idle
+      ? idle(run, { timeout: 2000 })
+      : window.setTimeout(run, 200);
+
     return () => {
       cancelled = true;
+      if (idle) window.cancelIdleCallback(handle);
+      else window.clearTimeout(handle);
     };
   }, [load]);
 

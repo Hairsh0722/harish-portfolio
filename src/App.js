@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import Preloader from "../src/components/Pre";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home/Home";
@@ -18,10 +18,6 @@ import Aurora from "./components/helper/Aurora";
 import Cursor from "./components/helper/Cursor";
 import Reveal from "./components/helper/Reveal";
 import BackToTop from "./components/helper/BackToTop";
-import AiAssistant from "./components/Assistant/AiAssistant";
-import AdminPanel from "./components/Admin/AdminPanel";
-import VisitorPrompt from "./components/Visitors/VisitorPrompt";
-import VisitorDashboard from "./components/Visitors/VisitorDashboard";
 import useTheme from "./components/helper/useTheme";
 import {
   startSmoothScroll,
@@ -31,16 +27,36 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import "./style.css";
 
+// Floating overlays — none of them are part of the first paint (each renders
+// null or a fixed-position launcher), and the owner-only ones are dead weight
+// for every visitor. Splitting them keeps the assistant's knowledge base, the
+// admin editor and the translation pipeline out of the initial bundle.
+const AiAssistant = lazy(() => import("./components/Assistant/AiAssistant"));
+const AdminPanel = lazy(() => import("./components/Admin/AdminPanel"));
+const VisitorPrompt = lazy(() => import("./components/Visitors/VisitorPrompt"));
+const VisitorDashboard = lazy(() =>
+  import("./components/Visitors/VisitorDashboard")
+);
+
 function App() {
   const [load, setLoad] = useState(true);
   const [theme, toggleTheme] = useTheme();
 
+  // Lift the preloader as soon as the app has actually painted. It used to sit
+  // on a fixed 1.2s timer, which pinned Largest Contentful Paint to 1.2s+ for
+  // everyone: the hero starts at opacity 0 and only animates in once `load`
+  // flips (see helper/Reveal.jsx). Two frames is enough to cover the first
+  // paint without holding the page hostage to a stopwatch — the hero's
+  // entrance animation still plays, it just starts 1.2s sooner.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoad(false);
-    }, 1200);
-
-    return () => clearTimeout(timer);
+    let raf2 = 0;
+    const raf1 = window.requestAnimationFrame(() => {
+      raf2 = window.requestAnimationFrame(() => setLoad(false));
+    });
+    return () => {
+      window.cancelAnimationFrame(raf1);
+      if (raf2) window.cancelAnimationFrame(raf2);
+    };
   }, []);
 
   // Lenis smooth scrolling for the whole page (matches the reference site).
@@ -75,10 +91,14 @@ function App() {
         </main>
         <Footer />
         <BackToTop />
-        <AiAssistant />
-        <AdminPanel />
-        <VisitorPrompt />
-        <VisitorDashboard />
+        {/* fallback={null}: every one of these is a fixed-position overlay, so
+            arriving a beat late costs nothing and shifts nothing. */}
+        <Suspense fallback={null}>
+          <AiAssistant />
+          <AdminPanel />
+          <VisitorPrompt />
+          <VisitorDashboard />
+        </Suspense>
       </div>
       </ContentProvider>
     </Router>

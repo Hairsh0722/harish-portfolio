@@ -1,6 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
-import GitHubCalendar from "react-github-calendar";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  Suspense,
+  lazy,
+} from "react";
 import { useTranslation } from "react-i18next";
+
+// react-github-calendar (+ react-activity-calendar + date-fns) is ~100 KB and
+// lives below the fold — load it only once the section approaches the viewport.
+const GithubCalendar = lazy(() => import("./GithubCalendar"));
 
 const GITHUB_USERNAME = "Hairsh0722";
 
@@ -98,27 +108,59 @@ function useAppearanceTick() {
   return tick;
 }
 
+// True once the card is within a screen of the viewport, so the calendar chunk
+// (and its GitHub API request) starts only when the visitor is heading for it.
+function useNearViewport(ref) {
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    if (typeof IntersectionObserver !== "function") {
+      setNear(true); // no observer support → just render it
+      return undefined;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setNear(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "100% 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+  return near;
+}
+
 function Github() {
   const { t } = useTranslation();
   const tick = useAppearanceTick();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const calendarTheme = useMemo(() => buildRamp(), [tick]);
+  const cardRef = useRef(null);
+  const near = useNearViewport(cardRef);
 
   return (
     <div className="github-activity">
       <h3 className="github-activity__heading">{t("about.github.heading")}</h3>
       <p className="github-activity__sub lead">{t("about.github.sub")}</p>
-      <div className="glass github-activity__card">
-        <GitHubCalendar
-          username={GITHUB_USERNAME}
-          theme={calendarTheme}
-          blockSize={12}
-          blockMargin={4}
-          blockRadius={2}
-          fontSize={14}
-          labels={{ totalCount: t("about.github.totalCount") }}
-          style={{ color: "var(--text-primary)", maxWidth: "100%" }}
-        />
+      {/* min-height reserves the calendar's box so the swap causes no shift */}
+      <div
+        className="glass github-activity__card"
+        ref={cardRef}
+        style={{ minHeight: 168 }}
+      >
+        {near && (
+          <Suspense fallback={null}>
+            <GithubCalendar
+              username={GITHUB_USERNAME}
+              theme={calendarTheme}
+              totalCountLabel={t("about.github.totalCount")}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
   );

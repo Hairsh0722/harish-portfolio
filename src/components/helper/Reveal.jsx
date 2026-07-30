@@ -28,11 +28,25 @@ export default function Reveal({ ready = true }) {
     // ---- 1. Scroll reveal --------------------------------------------------
     const STAGGER = 90; // ms between staggered children
 
+    // Promote to a compositor layer for the entrance, then hand it straight
+    // back. The CSS deliberately omits `will-change` (see the note in
+    // style.css) so untouched elements never hold a layer — an element is only
+    // promoted while its own transition is actually running.
+    const reveal = (el) => {
+      el.style.willChange = "opacity, transform";
+      const done = () => {
+        el.style.willChange = "";
+        el.removeEventListener("transitionend", done);
+      };
+      el.addEventListener("transitionend", done);
+      el.classList.add("is-revealed");
+    };
+
     // Reveal a staggered group of children in sequence.
     const showGroup = (parent) => {
       Array.from(parent.children).forEach((kid, i) => {
         kid.style.transitionDelay = `${i * STAGGER}ms`;
-        kid.classList.add("is-revealed");
+        reveal(kid);
       });
     };
 
@@ -49,7 +63,7 @@ export default function Reveal({ ready = true }) {
           } else {
             const delay = el.getAttribute("data-reveal-delay");
             if (delay) el.style.transitionDelay = `${delay}ms`;
-            el.classList.add("is-revealed");
+            reveal(el);
           }
           observer.unobserve(el);
         });

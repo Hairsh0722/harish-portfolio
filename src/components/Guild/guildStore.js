@@ -9,24 +9,16 @@
 //  Guild.js talks only to this module and never branches on which
 //  backend is active.
 // =============================================================
-import { firebaseReady, db, auth, OWNER_UID } from "../../services/firebase";
+//  The Firebase SDK is loaded on demand (see services/firebase.js) — the
+//  subscribe* functions still return their unsubscribe synchronously, by
+//  handing back a closure that cancels the in-flight import if the caller
+//  unmounts before the SDK lands.
 import {
-  collection,
-  query,
-  orderBy,
-  limit,
-  onSnapshot,
-  addDoc,
-  deleteDoc,
-  updateDoc,
-  doc,
-  serverTimestamp,
-} from "firebase/firestore";
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
+  firebaseReady,
+  getDb,
+  getAuthApi,
+  OWNER_UID,
+} from "../../services/firebase";
 
 export { firebaseReady };
 
@@ -68,35 +60,51 @@ const emitOwner = () => {
 // Subscribe to the live list of pins (newest first). Returns an unsubscribe fn.
 export function subscribePins(cb) {
   if (firebaseReady) {
-    // Order by a client timestamp, not serverTimestamp(): the latter is null in
-    // the local echo before the write reaches the server, which would hide the
-    // creator's own fresh pin from an orderBy(createdAt) query for a moment.
-    const q = query(
-      collection(db, COLLECTION),
-      orderBy("createdClient", "desc"),
-      limit(200)
-    );
-    return onSnapshot(
-      q,
-      (snap) => {
-        const pins = snap.docs.map((d) => {
-          const data = d.data();
-          return {
-            id: d.id,
-            ...data,
-            // serverTimestamp() is null on the local echo before the write
-            // lands — fall back to "now" so a fresh pin still shows a date.
-            date: data.date || new Date().toDateString(),
-          };
-        });
-        cb(pins);
-      },
-      (err) => {
+    let stop = null;
+    let cancelled = false;
+    getDb()
+      .then(({ db, fs }) => {
+        if (cancelled) return;
+        // Order by a client timestamp, not serverTimestamp(): the latter is
+        // null in the local echo before the write reaches the server, which
+        // would hide the creator's own fresh pin from an orderBy(createdAt)
+        // query for a moment.
+        const q = fs.query(
+          fs.collection(db, COLLECTION),
+          fs.orderBy("createdClient", "desc"),
+          fs.limit(200)
+        );
+        stop = fs.onSnapshot(
+          q,
+          (snap) => {
+            const pins = snap.docs.map((d) => {
+              const data = d.data();
+              return {
+                id: d.id,
+                ...data,
+                // serverTimestamp() is null on the local echo before the write
+                // lands — fall back to "now" so a fresh pin still shows a date.
+                date: data.date || new Date().toDateString(),
+              };
+            });
+            cb(pins);
+          },
+          (err) => {
+            // eslint-disable-next-line no-console
+            console.error("Guild subscribe failed:", err);
+            cb([]);
+          }
+        );
+      })
+      .catch((err) => {
         // eslint-disable-next-line no-console
         console.error("Guild subscribe failed:", err);
-        cb([]);
-      }
-    );
+        if (!cancelled) cb([]);
+      });
+    return () => {
+      cancelled = true;
+      if (stop) stop();
+    };
   }
   pinSubs.add(cb);
   cb(readJSON(PINS_KEY, []));
@@ -107,11 +115,12 @@ export function subscribePins(cb) {
 export async function addPin({ name, message, color, tape }) {
   const base = { name, message, color, tape, loved: false, likes: 0 };
   if (firebaseReady) {
-    await addDoc(collection(db, COLLECTION), {
+    const { db, fs } = await getDb();
+    await fs.addDoc(fs.collection(db, COLLECTION), {
       ...base,
       date: new Date().toDateString(),
       createdClient: Date.now(), // present in the local echo → instant display
-      createdAt: serverTimestamp(),
+      createdAt: fs.serverTimestamp(),
     });
     return;
   }
@@ -127,7 +136,8 @@ export async function addPin({ name, message, color, tape }) {
 // Delete a pin (owner only; Firestore rules enforce this server-side).
 export async function deletePin(id) {
   if (firebaseReady) {
-    await deleteDoc(doc(db, COLLECTION, id));
+    const { db, fs } = await getDb();
+    await fs.deleteDoc(fs.doc(db, COLLECTION, id));
     return;
   }
   const next = readJSON(PINS_KEY, []).filter((n) => n.id !== id);
@@ -139,7 +149,8 @@ export async function deletePin(id) {
 // Only the passed fields are written — other fields on the doc are preserved.
 export async function updatePin(id, fields) {
   if (firebaseReady) {
-    await updateDoc(doc(db, COLLECTION, id), fields);
+    const { db, fs } = await getDb();
+    await fs.updateDoc(fs.doc(db, COLLECTION, id), fields);
     return;
   }
   const next = readJSON(PINS_KEY, []).map((n) =>
@@ -154,11 +165,26 @@ export async function updatePin(id, fields) {
 // Subscribe to owner (can-delete) state. Returns an unsubscribe fn.
 export function subscribeOwner(cb) {
   if (firebaseReady) {
-    return onAuthStateChanged(auth, (user) => {
-      // If an owner UID is configured, require an exact match; otherwise any
-      // signed-in user counts (single-account projects).
-      cb(Boolean(user) && (!OWNER_UID || user.uid === OWNER_UID));
-    });
+    let stop = null;
+    let cancelled = false;
+    getAuthApi()
+      .then(({ auth, authApi }) => {
+        if (cancelled) return;
+        stop = authApi.onAuthStateChanged(auth, (user) => {
+          // If an owner UID is configured, require an exact match; otherwise
+          // any signed-in user counts (single-account projects).
+          cb(Boolean(user) && (!OWNER_UID || user.uid === OWNER_UID));
+        });
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error("Owner subscribe failed:", err);
+        if (!cancelled) cb(false);
+      });
+    return () => {
+      cancelled = true;
+      if (stop) stop();
+    };
   }
   ownerSubs.add(cb);
   cb(window.localStorage.getItem(OWNER_KEY) === "1");
@@ -168,7 +194,8 @@ export function subscribeOwner(cb) {
 // Firebase mode: sign in with email/password. Local mode: flip the flag.
 export async function ownerSignIn(email, password) {
   if (firebaseReady) {
-    await signInWithEmailAndPassword(auth, email, password);
+    const { auth, authApi } = await getAuthApi();
+    await authApi.signInWithEmailAndPassword(auth, email, password);
     return;
   }
   window.localStorage.setItem(OWNER_KEY, "1");
@@ -177,7 +204,8 @@ export async function ownerSignIn(email, password) {
 
 export async function ownerSignOut() {
   if (firebaseReady) {
-    await signOut(auth);
+    const { auth, authApi } = await getAuthApi();
+    await authApi.signOut(auth);
     return;
   }
   window.localStorage.removeItem(OWNER_KEY);

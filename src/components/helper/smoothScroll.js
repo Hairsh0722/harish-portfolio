@@ -41,13 +41,21 @@ export function startSmoothScroll() {
 
   lenis = new Lenis({
     // Time-based glide (duration + exponential ease-out) instead of a
-    // framerate lerp. This is what gives the heavy, momentum-rich "buttery"
-    // feel of reference portfolios like adityathakur.me — the wheel/scroll
-    // settles over ~1.2s with a smooth ease rather than snapping.
-    duration: 1.2,
+    // framerate lerp — that's what gives the eased, momentum-rich feel rather
+    // than a hard snap.
+    //
+    // DURATION is the single knob for how the page *feels*. It's how long a
+    // wheel tick takes to settle. 1.2s reads as heavy and laggy: the page is
+    // still gliding well after you've stopped scrolling, and every correction
+    // fights the tail of the last one. 0.85 keeps the ease but tracks the
+    // wheel closely enough to feel responsive. Raise toward 1.2 for a heavier
+    // glide, drop toward 0.6 for near-native snap.
+    duration: 0.85,
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
-    wheelMultiplier: 1,
+    // Slightly over 1 so one wheel notch covers a bit more ground — with the
+    // shorter duration this keeps the total travel per gesture about the same.
+    wheelMultiplier: 1.1,
     touchMultiplier: 1.5,
     autoRaf: false, // we drive raf() below
   });

@@ -8,10 +8,16 @@
 //  These keys are safe to expose in the client bundle — Firebase
 //  access is governed by Firestore Security Rules, not by hiding
 //  the config. See firestore.rules.
+//
+//  LOADING: the SDK is imported *dynamically*, never at module
+//  scope. Firestore alone is ~410 KB minified (it bundles re2js)
+//  and Auth another ~90 KB — statically importing them put half
+//  the main bundle on the critical path for a page whose hero
+//  needs no backend at all. Callers await getDb()/getAuthApi(),
+//  which webpack emits as separate chunks fetched on first use.
+//  Each returns the SDK namespace alongside the instance, so
+//  consumers get `fs.collection(...)` instead of a static import.
 // =============================================================
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
 
 const config = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -26,17 +32,56 @@ const config = {
 // Optional in the client; used to decide when to show delete controls.
 export const OWNER_UID = process.env.REACT_APP_GUILD_OWNER_UID || "";
 
+// Sync flag: a plain env check, so callers can branch on it without loading
+// anything. Everything below is async and only ever runs when it's true.
 export const firebaseReady = Boolean(
   config.apiKey && config.projectId && config.appId
 );
 
-let db = null;
-let auth = null;
+const notConfigured = () =>
+  Promise.reject(new Error("Firebase is not configured"));
 
-if (firebaseReady) {
-  const app = initializeApp(config);
-  db = getFirestore(app);
-  auth = getAuth(app);
+// ---- app (shared by both SDKs, initialised once) ---------------------------
+let appPromise = null;
+function getApp() {
+  if (!appPromise) {
+    appPromise = import("firebase/app").then(({ initializeApp }) =>
+      initializeApp(config)
+    );
+  }
+  return appPromise;
 }
 
-export { db, auth };
+// ---- Firestore -------------------------------------------------------------
+let dbPromise = null;
+/**
+ * Load Firestore on demand.
+ * @returns {Promise<{db: object, fs: object}>} the instance plus the SDK
+ *   namespace (`fs.collection`, `fs.doc`, `fs.onSnapshot`, …).
+ */
+export function getDb() {
+  if (!firebaseReady) return notConfigured();
+  if (!dbPromise) {
+    dbPromise = Promise.all([getApp(), import("firebase/firestore")]).then(
+      ([app, fs]) => ({ db: fs.getFirestore(app), fs })
+    );
+  }
+  return dbPromise;
+}
+
+// ---- Auth ------------------------------------------------------------------
+let authPromise = null;
+/**
+ * Load Auth on demand. Kept in its own chunk from Firestore: a visitor who
+ * never signs in should never pay for it.
+ * @returns {Promise<{auth: object, authApi: object}>}
+ */
+export function getAuthApi() {
+  if (!firebaseReady) return notConfigured();
+  if (!authPromise) {
+    authPromise = Promise.all([getApp(), import("firebase/auth")]).then(
+      ([app, authApi]) => ({ auth: authApi.getAuth(app), authApi })
+    );
+  }
+  return authPromise;
+}

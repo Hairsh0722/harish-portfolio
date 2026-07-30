@@ -11,19 +11,9 @@
 //  A visit is logged once per session; the visitor may optionally
 //  attach their name, which patches the same doc (empty → name).
 // =============================================================
-import { firebaseReady, db } from "../../services/firebase";
-import {
-  collection,
-  query,
-  orderBy,
-  limit,
-  onSnapshot,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  serverTimestamp,
-} from "firebase/firestore";
+//  The Firestore SDK is loaded on demand (see services/firebase.js), so a
+//  visitor who never reaches the log never downloads it.
+import { firebaseReady, getDb } from "../../services/firebase";
 
 export { firebaseReady };
 
@@ -57,10 +47,11 @@ const emit = () => {
 export async function logVisit(meta) {
   const base = { name: "", ...meta };
   if (firebaseReady) {
-    const ref = await addDoc(collection(db, COLLECTION), {
+    const { db, fs } = await getDb();
+    const ref = await fs.addDoc(fs.collection(db, COLLECTION), {
       ...base,
       createdClient: Date.now(), // present in the local echo → instant sort
-      createdAt: serverTimestamp(),
+      createdAt: fs.serverTimestamp(),
       date: new Date().toDateString(),
     });
     return ref.id;
@@ -76,7 +67,8 @@ export async function logVisit(meta) {
 export async function setVisitName(id, name) {
   if (!id || !name) return;
   if (firebaseReady) {
-    await updateDoc(doc(db, COLLECTION, id), { name });
+    const { db, fs } = await getDb();
+    await fs.updateDoc(fs.doc(db, COLLECTION, id), { name });
     return;
   }
   const next = readJSON(LOCAL_KEY, []).map((v) =>
@@ -91,20 +83,35 @@ export async function setVisitName(id, name) {
 // Returns an unsubscribe fn.
 export function subscribeVisits(cb) {
   if (firebaseReady) {
-    const q = query(
-      collection(db, COLLECTION),
-      orderBy("createdClient", "desc"),
-      limit(500)
-    );
-    return onSnapshot(
-      q,
-      (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
-      (err) => {
+    let stop = null;
+    let cancelled = false;
+    getDb()
+      .then(({ db, fs }) => {
+        if (cancelled) return;
+        const q = fs.query(
+          fs.collection(db, COLLECTION),
+          fs.orderBy("createdClient", "desc"),
+          fs.limit(500)
+        );
+        stop = fs.onSnapshot(
+          q,
+          (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+          (err) => {
+            // eslint-disable-next-line no-console
+            console.error("Visits subscribe failed:", err);
+            cb([]);
+          }
+        );
+      })
+      .catch((err) => {
         // eslint-disable-next-line no-console
         console.error("Visits subscribe failed:", err);
-        cb([]);
-      }
-    );
+        if (!cancelled) cb([]);
+      });
+    return () => {
+      cancelled = true;
+      if (stop) stop();
+    };
   }
   subs.add(cb);
   cb(readJSON(LOCAL_KEY, []));
@@ -114,7 +121,8 @@ export function subscribeVisits(cb) {
 // Owner-only: remove a visit (Firestore rules enforce this server-side).
 export async function deleteVisit(id) {
   if (firebaseReady) {
-    await deleteDoc(doc(db, COLLECTION, id));
+    const { db, fs } = await getDb();
+    await fs.deleteDoc(fs.doc(db, COLLECTION, id));
     return;
   }
   writeJSON(LOCAL_KEY, readJSON(LOCAL_KEY, []).filter((v) => v.id !== id));
