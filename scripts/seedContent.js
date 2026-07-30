@@ -9,9 +9,11 @@
  * Documents use stable IDs, so re-running this UPDATES existing docs rather
  * than creating duplicates. It is safe to run repeatedly.
  *
- * Config is read from .env (the same REACT_APP_FIREBASE_* keys the app uses).
- * Writes are owner-only (see firestore.rules), so the script signs in with the
- * owner account. Provide the owner credentials via env or .env:
+ * Config is read from .env / .env.local (the same REACT_APP_FIREBASE_* keys the
+ * app uses). Writes are owner-only (see firestore.rules) — publish those rules
+ * (`npm run deploy:rules`) or every write fails with "Missing or insufficient
+ * permissions". The script signs in with the owner account; provide the owner
+ * credentials via env or .env.local:
  *   SEED_OWNER_EMAIL=you@example.com
  *   SEED_OWNER_PASSWORD=••••••••
  *
@@ -135,7 +137,13 @@ function readLocale(lang) {
 }
 
 async function main() {
-  const env = { ...loadEnv(path.join(ROOT, ".env")), ...process.env };
+  // Same precedence CRA uses: .env, then .env.local overrides it, then the
+  // real environment. The app's keys normally live in .env.local (gitignored).
+  const env = {
+    ...loadEnv(path.join(ROOT, ".env")),
+    ...loadEnv(path.join(ROOT, ".env.local")),
+    ...process.env,
+  };
 
   const config = {
     apiKey: env.REACT_APP_FIREBASE_API_KEY,
@@ -148,7 +156,7 @@ async function main() {
 
   if (!config.apiKey || !config.projectId || !config.appId) {
     console.error(
-      "\n✖ Firebase config missing. Set REACT_APP_FIREBASE_* in .env first.\n"
+      "\n✖ Firebase config missing. Set REACT_APP_FIREBASE_* in .env.local first.\n"
     );
     process.exit(1);
   }
@@ -158,8 +166,8 @@ async function main() {
   if (!ownerEmail || !ownerPassword) {
     console.error(
       "\n✖ Owner credentials missing.\n" +
-        "  Set SEED_OWNER_EMAIL and SEED_OWNER_PASSWORD (env or .env) — writes\n" +
-        "  are owner-only per firestore.rules.\n"
+        "  Set SEED_OWNER_EMAIL and SEED_OWNER_PASSWORD (env or .env.local) —\n" +
+        "  writes are owner-only per firestore.rules.\n"
     );
     process.exit(1);
   }

@@ -34,6 +34,49 @@ beforeEach(() => {
   jest.restoreAllMocks();
 });
 
+// NOTE: the translation cache lives in module state, so window.localStorage
+// .clear() does not reset it — every test below must translate a string no
+// other test uses, or it silently scores a cache hit instead of a request.
+describe("provider responses", () => {
+  const query = (url) => decodeURIComponent(String(url).split("&q=")[1] || "");
+
+  // Each keyless endpoint answers in its own shape and they occasionally answer
+  // in each other's. Whatever comes back, the original English must never be
+  // spliced into the translation (the gtx segment arrays carry it at [1]).
+  test.each([
+    ["dict-chrome-ex", "Shape one copy", (q) => [q.toUpperCase()]],
+    ["gtx segments", "Shape two copy", (q) => [[[q.toUpperCase(), q, null, null, 0]], null, "en"]],
+    ["gtx single segment", "Shape three copy", (q) => [[[q.toUpperCase(), q, null, null, 0]]]],
+    ["sentences object", "Shape four copy", (q) => ({ sentences: [{ trans: q.toUpperCase() }] })],
+  ])("reads the %s shape", async (_label, text, shape) => {
+    global.fetch = jest.fn(async (url) => ({ ok: true, json: async () => shape(query(url)) }));
+    expect(await translateText(text, "hi")).toBe(text.toUpperCase());
+    expect(global.fetch).toHaveBeenCalled(); // not a cache hit
+  });
+
+  test("falls through to the next provider when one is unreachable", async () => {
+    const hosts = [];
+    global.fetch = jest.fn(async (url) => {
+      hosts.push(new URL(String(url)).hostname);
+      // The CORS-enabled endpoint is tried first; simulate it being blocked (a
+      // proxy reset surfaces as a TypeError "Failed to fetch" in the browser).
+      if (hosts.length === 1) throw new TypeError("Failed to fetch");
+      return { ok: true, json: async () => [query(url).toUpperCase()] };
+    });
+    expect(await translateText("Fallback path copy", "hi")).toBe("FALLBACK PATH COPY");
+    expect(hosts.length).toBeGreaterThan(1);
+  });
+
+  test("names every provider that failed", async () => {
+    global.fetch = jest.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    await expect(translateText("Every provider down", "hi")).rejects.toThrow(
+      /google-dict.*mymemory/s
+    );
+  });
+});
+
 describe("isTranslatableText", () => {
   test("skips values with nothing to translate", () => {
     expect(isTranslatableText("")).toBe(false);
@@ -71,6 +114,18 @@ describe("translateText", () => {
     expect(out).toContain("Harish Siva"); // glossary: never transliterated
     expect(out).toContain("iOPEX Technologies");
     expect(out).toContain("HI"); // the surrounding copy did get translated
+  });
+
+  // Glossary terms are matched on word boundaries: without them "Esc" would
+  // also mask the start of "Escape" and "AI" the middle of "EMAIL", quietly
+  // freezing part of an ordinary word in English.
+  test("masks glossary terms but not the words that contain them", async () => {
+    stubProvider();
+    const out = await translateText("Press Esc to escape the AI email prompt", "hi");
+    expect(out).toContain("Esc "); // the key name survived
+    expect(out).toContain("AI");
+    expect(out).toContain("ESCAPE"); // the ordinary word was still translated
+    expect(out).toContain("EMAIL");
   });
 
   test("keeps English when the engine drops the markers", async () => {

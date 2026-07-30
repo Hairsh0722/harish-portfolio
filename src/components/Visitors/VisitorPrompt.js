@@ -19,6 +19,10 @@ const SESSION_KEY = "pv.session.v1"; // one log per tab session
 const SEEN_KEY = "pv.seen.v1"; // returning-visitor flag (persists)
 const NAME_KEY = "pv.name.v1"; // remembered self-provided name
 const ASKED_KEY = "pv.asked.v1"; // visitor dismissed/answered the prompt
+// Id of the last visit this browser logged. Persisted (not session-scoped) so a
+// name given after a reload — or in a later session — still lands on a real
+// doc; without it the name was written to nothing and silently lost.
+const VISIT_ID_KEY = "pv.visitId.v1";
 
 const readLS = (key) => {
   try {
@@ -41,6 +45,7 @@ function VisitorPrompt() {
   const [name, setName] = useState("");
   const [saved, setSaved] = useState(false);
   const visitIdRef = useRef(null);
+  const logRef = useRef(null); // in-flight logVisit(), so save() can await it
   const inputRef = useRef(null);
 
   // Log the visit once per session, then decide whether to greet.
@@ -76,7 +81,10 @@ function VisitorPrompt() {
           ...(geo || {}),
         };
         try {
-          visitIdRef.current = await logVisit(meta);
+          logRef.current = logVisit(meta);
+          const id = await logRef.current;
+          visitIdRef.current = id;
+          writeLS(VISIT_ID_KEY, id);
         } catch (err) {
           if (process.env.NODE_ENV === "development") {
             // eslint-disable-next-line no-console
@@ -121,9 +129,19 @@ function VisitorPrompt() {
     writeLS(NAME_KEY, clean);
     writeLS(ASKED_KEY, "1");
     try {
-      await setVisitName(visitIdRef.current, clean);
-    } catch (_) {
-      /* ignore — the visit is already logged, the name is a bonus */
+      // Resolve the doc to patch: this session's visit if we have it, else the
+      // one still in flight (the geo lookup can take a moment), else the last
+      // visit this browser logged — the reload case, where this render never
+      // logged anything and the name used to be dropped on the floor.
+      let id = visitIdRef.current;
+      if (!id && logRef.current) id = await logRef.current;
+      if (!id) id = readLS(VISIT_ID_KEY);
+      await setVisitName(id, clean);
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.warn("Visit name save failed:", err);
+      }
     }
     setSaved(true);
     setTimeout(() => setShow(false), 1500);
@@ -173,9 +191,6 @@ function VisitorPrompt() {
               {t("visitors.prompt.save")}
             </button>
           </form>
-          <button type="button" className="pv-prompt__skip" onClick={dismiss}>
-            {t("visitors.prompt.skip")}
-          </button>
         </>
       )}
     </div>

@@ -42,6 +42,7 @@ import {
   subscribePins,
   updatePin,
   deletePin,
+  describeWriteError,
 } from "./adminStore";
 import {
   SKILL_ICONS,
@@ -837,11 +838,20 @@ function AdminDrawer({ onClose }) {
   const [originals, setOriginals] = useState({});
   // Guild pins as loaded, keyed by id — used to detect edits / removals.
   const [guildOriginals, setGuildOriginals] = useState({});
+  const toastTimer = useRef(0);
 
+  // Errors explain how to fix something, so they linger; confirmations don't.
+  // The pending timer is cancelled first, or a long error timeout would cut a
+  // later toast short.
   const flash = useCallback((kind, msg) => {
+    window.clearTimeout(toastTimer.current);
     setToast({ kind, text: msg });
-    window.setTimeout(() => setToast(null), 3200);
+    toastTimer.current = window.setTimeout(
+      () => setToast(null),
+      kind === "err" ? 9000 : 3200
+    );
   }, []);
+  useEffect(() => () => window.clearTimeout(toastTimer.current), []);
 
   // Esc closes; lock body scroll while open.
   useEffect(() => {
@@ -959,7 +969,7 @@ function AdminDrawer({ onClose }) {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("Admin save failed:", err);
-      flash("err", err.message || "Save failed.");
+      flash("err", describeWriteError(err));
     } finally {
       setMt(null);
       setSaving(false);

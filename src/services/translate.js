@@ -11,12 +11,21 @@
 //  Providers, tried in order (first success wins):
 //    1. Google Cloud Translation v2 — used only when
 //       REACT_APP_GOOGLE_TRANSLATE_KEY is set (documented, paid).
-//    2. translate.googleapis.com "gtx" — keyless and free, but an
-//       undocumented endpoint: it can rate-limit or change shape.
-//    3. MyMemory — keyless, free, documented, ~500 chars/query.
+//    2. clients5.google.com "dict-chrome-ex" — keyless, and the only
+//       one of the free endpoints that answers browser requests with
+//       Access-Control-Allow-Origin: *.
+//    3. translate.googleapis.com "gtx" — keyless, but sends no CORS
+//       header, so it only works where a proxy/extension adds one.
+//    4. MyMemory — keyless, documented, ~500 chars/query.
 //  If every provider fails for a string the pass aborts with
 //  TranslationUnavailable, so a blocked network fails fast and is
 //  reported instead of silently leaving text in English.
+//
+//  A "Failed to fetch" from every provider is usually the network, not
+//  the services: corporate TLS-inspecting proxies commonly reset
+//  translate.googleapis.com and 403 api.mymemory.translated.net. That's
+//  why provider 2 leads the keyless chain, and why the thrown error names
+//  each provider's failure — see requestTranslation.
 //
 //  Two things are protected from the translator:
 //   • i18next placeholders ({{count}}) and <Trans> markers
@@ -48,11 +57,22 @@ export class TranslationUnavailable extends Error {
 // ---------------------------------------------------------------------------
 //  Masking: placeholders, markup markers and proper nouns
 // ---------------------------------------------------------------------------
-// Brand / proper nouns that must survive verbatim (longest first so "Harish
-// Siva" wins over "Harish"). Matched case-sensitively on word boundaries.
+// Terms that must survive verbatim, matched case-sensitively on word
+// boundaries. Two kinds, same treatment:
+//  • Brand / proper nouns — a translator transliterates or, worse, "translates"
+//    them: Postman -> "डाकिया" (mailman), Firestore -> "நெருப்புக் கடை"
+//    (fire shop), APIs -> "शहद की मक्खी" (honey bee, i.e. the genus Apis).
+//  • English words this site uses as fixed labels, where the generic
+//    translation is wrong in context: Resume -> "फिर शुरू करना" (start again).
+// Order doesn't matter — the regex below sorts longest-first, so "Harish Siva"
+// wins over "Harish" and "REST API" over "API".
 const GLOSSARY = [
   "iOPEX Technologies",
   "Harish Siva",
+  "REST APIs",
+  "REST API",
+  "Firestore",
+  "Bootstrap",
   "Node.js",
   "Next.js",
   "NestJS",
@@ -65,18 +85,32 @@ const GLOSSARY = [
   "Firebase",
   "Postman",
   "Prisma",
+  "Resume",
   "MySQL",
   "XAMPP",
   "iOPEX",
   "Harish",
   "React",
+  "HRIS",
+  "APIs",
   "PHP",
+  "API",
+  "UIs",
+  "Esc",
+  "CV",
+  "UI",
+  "AI",
 ];
 
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+// \b matters for the short entries: without it "Esc" would match inside
+// "Escape" and "AI" inside "EMAIL", masking part of an ordinary word.
 const GLOSSARY_RE = new RegExp(
-  `(?:${GLOSSARY.map(escapeRe).join("|")})`,
+  `\\b(?:${GLOSSARY.slice()
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRe)
+    .join("|")})\\b`,
   "g"
 );
 
@@ -194,14 +228,57 @@ async function viaGoogleCloud(text, target, key) {
   return decodeEntities(out);
 }
 
+/**
+ * Keyless endpoint used by Chrome's dictionary extension. Normally answers with
+ * a plain ["translated text"], and — unlike the gtx endpoint below — sends
+ * Access-Control-Allow-Origin: *, so a browser fetch actually completes.
+ * Occasionally it replies in the gtx segment shape or with a `sentences` object,
+ * so all three are accepted.
+ */
+async function viaGoogleDict(text, target) {
+  const url =
+    "https://clients5.google.com/translate_a/t?client=dict-chrome-ex" +
+    `&sl=${SOURCE_LANG}&tl=${encodeURIComponent(target)}&q=${encodeURIComponent(text)}`;
+  const data = await fetchJson(url);
+  const out = flattenSegments(data);
+  if (!out.trim()) throw new Error("Empty response");
+  return decodeEntities(out);
+}
+
+/**
+ * Join a keyless Google response into one string. Each endpoint has its own
+ * shape and they occasionally answer in each other's, so all are handled:
+ *   ["text", …]                        — dict-chrome-ex
+ *   [[[text, original, …], …], …]      — gtx (keep [0], drop the original)
+ *   { sentences: [{ trans }, …] }      — gtx with extra dt params
+ * Anything else yields "", which the callers report as "Empty response" so the
+ * next provider gets a turn.
+ */
+function flattenSegments(data) {
+  if (typeof data === "string") return data;
+  if (data && Array.isArray(data.sentences))
+    return data.sentences.map((s) => (s && s.trans) || "").join("");
+  if (!Array.isArray(data)) return "";
+  // ["text", …] — dict-chrome-ex.
+  if (data.every((s) => typeof s === "string")) return data.join("");
+  // [[[text, original, …], …], …] — gtx. The segment list is data[0], and only
+  // element 0 of each segment is the translation: joining the whole segment
+  // would splice the original English back into the output.
+  if (!Array.isArray(data[0])) return "";
+  return data[0]
+    .map((seg) => (Array.isArray(seg) ? seg[0] || "" : typeof seg === "string" ? seg : ""))
+    .join("");
+}
+
 // Keyless endpoint: returns [[[chunk, source, …], …], …] — join the chunks.
+// Sends no CORS header, so in a browser this only works behind something that
+// adds one; kept as a fallback for networks where it does.
 async function viaGoogleFree(text, target) {
   const url =
     "https://translate.googleapis.com/translate_a/single?client=gtx" +
     `&sl=${SOURCE_LANG}&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`;
   const data = await fetchJson(url);
-  if (!Array.isArray(data) || !Array.isArray(data[0])) throw new Error("Unexpected response");
-  const out = data[0].map((seg) => (Array.isArray(seg) ? seg[0] || "" : "")).join("");
+  const out = flattenSegments(data);
   if (!out.trim()) throw new Error("Empty response");
   return out;
 }
@@ -233,6 +310,8 @@ function providers() {
   const list = [];
   const key = process.env.REACT_APP_GOOGLE_TRANSLATE_KEY;
   if (key) list.push({ name: "google-cloud", run: (t, l) => viaGoogleCloud(t, l, key) });
+  // CORS-enabled first: the other two are commonly unreachable from a browser.
+  list.push({ name: "google-dict", run: viaGoogleDict });
   list.push({ name: "google-free", run: viaGoogleFree });
   list.push({ name: "mymemory", run: viaMyMemory });
   return list;
@@ -244,20 +323,22 @@ function providers() {
 // as "translated fine" to the owner). Callers stop on the first throw, so a
 // blocked network costs a handful of requests, not one per string.
 async function requestTranslation(text, target) {
-  let last = null;
+  const failures = [];
   for (const p of providers()) {
     try {
       const out = await p.run(text, target);
       if (out && out.trim()) return out;
       throw new Error("Empty response");
     } catch (err) {
-      last = err;
+      failures.push(`${p.name}: ${err.message}`);
       // eslint-disable-next-line no-console
       console.warn(`Translation provider "${p.name}" failed:`, err.message);
     }
   }
+  // Name every provider's failure: one "Failed to fetch" is a blocked host, all
+  // of them together is the network (proxy / offline / extension).
   throw new TranslationUnavailable(
-    `Translation service unreachable (${last ? last.message : "unknown error"}).`
+    `No translation service reachable (${failures.join("; ")}).`
   );
 }
 

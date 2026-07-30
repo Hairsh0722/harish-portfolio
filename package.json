@@ -32,6 +32,7 @@
     "eject": "react-scripts eject",
     "predeploy": "react-scripts build",
     "deploy": "node scripts/deploy.js",
+    "deploy:rules": "npx --yes firebase-tools deploy --only firestore:rules",
     "seed": "node scripts/seedContent.js"
   },
   "devDependencies": {

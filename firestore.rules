@@ -1,12 +1,24 @@
 rules_version = '2';
 
-// Security rules for the shared Guild Board.
-// Paste these into Firebase console > Firestore Database > Rules and Publish.
-// The owner UID below is already set to the account that may delete pins.
+// Security rules for the portfolio's Firestore data (site content + Guild Board).
 //
+// THIS FILE IS THE SOURCE OF TRUTH — but only once it is published. Firestore
+// denies everything that isn't matched here, so any rule added below stays
+// inert (admin saves fail with "Missing or insufficient permissions") until you
+// deploy it:
+//
+//     npm run deploy:rules        # firebase deploy --only firestore:rules
+//                                 # first time: npx firebase-tools login
+//
+// Target project comes from .firebaserc. Editing the rules in the Firebase
+// console instead works too, but then the console and this file drift apart —
+// prefer the command, and re-run it after every change here.
+//
+// - Site content (content/, projects/, education/, techstack/, toolstack/,
+//   meta/) is world-readable; only the owner may write it.
 // - Anyone may read the wall and add a pin (validated below).
-// - Only the owner (matching UID) may delete a pin.
-// - Nobody may edit an existing pin from the client.
+// - Only the owner (matching UID) may edit or delete a pin.
+// - The visitor log is owner-read-only.
 service cloud.firestore {
   match /databases/{database}/documents {
     // The portfolio owner — the only account allowed to edit site content.
