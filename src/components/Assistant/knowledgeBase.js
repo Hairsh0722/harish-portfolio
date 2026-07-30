@@ -258,6 +258,27 @@ export const INTENTS = [
   },
 
   {
+    id: "booking",
+    // Beats "contact" on tie-breaks: someone asking for a call wants the
+    // booking button, not the generic "here's how to reach him" answer.
+    weight: 1.3,
+    keywords: [
+      "book a call", "book a meeting", "schedule a call", "schedule a meeting",
+      "set up a call", "setup a call", "arrange a call", "hop on a call",
+      "jump on a call", "quick call", "intro call", "discovery call",
+      "book time", "calendar", "calendly", "appointment", "meet him",
+    ],
+    reply: {
+      text: "You can book a call with Harish from the Contact section — there's a “Book a call” button next to the form. It's a free 30-minute intro chat about your role or project.",
+      actions: [
+        { kind: "section", target: "contact", label: "Book a call" },
+        { kind: "whatsapp" },
+      ],
+      chips: ["Is he open to work?", "Where is he based?"],
+    },
+  },
+
+  {
     id: "location",
     keywords: [
       "where", "location", "based", "city", "country", "live", "lives",

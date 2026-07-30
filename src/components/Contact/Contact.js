@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
+import { FaWhatsapp, FaEnvelope, FaRegCalendarCheck } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
 import { Trans, useTranslation } from "react-i18next";
 
@@ -9,6 +9,16 @@ import { Trans, useTranslation } from "react-i18next";
    Example: India +91 95513 63232  →  "919551363232"
 ------------------------------------------------------------------- */
 const WHATSAPP_NUMBER = "919551363232"; // +91 95513 63232
+
+/* -------------------------------------------------------------------
+   "Book a call" scheduling link.
+   Paste a Calendly / Google Calendar appointment / Cal.com URL here
+   (or set REACT_APP_BOOKING_URL in .env.local so it can differ per
+   environment). Leave it empty and the button stays useful: it opens
+   WhatsApp with a pre-filled "let's book a call" message instead of
+   pointing at a dead link.
+------------------------------------------------------------------- */
+const BOOKING_URL = process.env.REACT_APP_BOOKING_URL || "";
 
 /* -------------------------------------------------------------------
    EmailJS credentials — set these in a .env.local file (see .env.example).
@@ -30,6 +40,12 @@ function Contact() {
   const [errorDetail, setErrorDetail] = useState("");
 
   const configured = Boolean(SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY);
+
+  // No scheduling link set yet → fall back to WhatsApp with the request
+  // already typed out, so the button never leads nowhere.
+  const bookingHref =
+    BOOKING_URL ||
+    `https://wa.me/${number}?text=${encodeURIComponent(t("contact.bookCallMessage"))}`;
 
   const validate = (form) => {
     // Read via FormData: an input named "name" collides with the form's own
@@ -214,15 +230,29 @@ function Contact() {
             <h2 className="contact-aside-title">{t("contact.asideTitle")}</h2>
             <p className="contact-aside-copy">{t("contact.asideCopy")}</p>
 
-            <a
-              href={`https://wa.me/${number}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary contact-wa-btn"
-              data-magnetic="0.35"
-            >
-              <FaWhatsapp /> {t("contact.chatWhatsApp")}
-            </a>
+            <div className="contact-actions">
+              <a
+                href={`https://wa.me/${number}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary contact-wa-btn"
+                data-magnetic="0.35"
+              >
+                <FaWhatsapp /> {t("contact.chatWhatsApp")}
+              </a>
+
+              <a
+                href={bookingHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-outline contact-book-btn"
+                data-magnetic="0.35"
+              >
+                <FaRegCalendarCheck /> {t("contact.bookCall")}
+              </a>
+            </div>
+
+            <p className="contact-book-hint">{t("contact.bookCallHint")}</p>
           </aside>
         </div>
       </div>

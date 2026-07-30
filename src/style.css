@@ -1603,18 +1603,6 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   background: var(--surface-strong);
   border: 1px solid var(--glass-border-strong);
 }
-.nav-aurora .nav-link.active::after {
-  content: "";
-  position: absolute;
-  left: 0.4rem;
-  top: 50%;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent-glow);
-  transform: translateY(-50%);
-}
 
 /* mobile toggler */
 .nav-aurora .navbar-toggler {
@@ -1730,9 +1718,6 @@ html[data-theme="light"].cursor-visible.cursor-hover .cursor__glow {
   }
   .nav-aurora .nav-link.active {
     border-color: var(--glass-border-strong);
-  }
-  .nav-aurora .nav-link.active::after {
-    display: none;
   }
 }
 
@@ -3134,11 +3119,25 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   line-height: 1.65;
   margin: 0;
 }
-.contact-wa-btn {
+/* WhatsApp + "Book a call" sit side by side, wrapping on narrow cards */
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.contact-wa-btn,
+.contact-book-btn {
   align-self: flex-start;
 }
-.contact-wa-btn svg {
+.contact-wa-btn svg,
+.contact-book-btn svg {
   font-size: 1.2em;
+}
+.contact-book-hint {
+  margin: calc(-1 * var(--space-2)) 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 .contact-socials {
   margin-top: var(--space-2);
@@ -3237,7 +3236,11 @@ html[data-theme="light"] .tk-op { color: #be185d; }
   .contact-grid {
     grid-template-columns: 1fr;
   }
+  .contact-actions {
+    flex-direction: column;
+  }
   .contact-wa-btn,
+  .contact-book-btn,
   .form-submit {
     align-self: stretch;
   }
@@ -3799,8 +3802,14 @@ html[data-theme="light"] .tk-op { color: #be185d; }
     transform: translateY(30px);
     transition: opacity var(--dur-slow) var(--ease-out),
       transform var(--dur-slow) var(--ease-out);
-    will-change: opacity, transform;
   }
+  /* NOTE: deliberately no `will-change` here. It promotes every tagged element
+     to its own GPU layer the moment the page loads, and there are ~35 of them
+     — the compositor then re-composites all 35 on every scroll frame, for the
+     life of the page, to buy a one-shot 560ms entrance. Browsers already
+     promote an element while an opacity/transform transition is actually
+     running, which is the only moment the hint would have helped.
+     Reveal.jsx applies it per-element for the duration of the animation. */
   [data-reveal="left"] {
     transform: translateX(-36px);
   }
@@ -4676,18 +4685,6 @@ html.theme-vt::view-transition-new(root) {
   transition: transform var(--dur-med) var(--ease-out);
 }
 .pv-prompt__save:hover { transform: translateY(-1px); }
-.pv-prompt__skip {
-  display: block;
-  margin: 10px auto 0;
-  padding: 2px 6px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  cursor: pointer;
-  text-decoration: underline;
-}
-.pv-prompt__skip:hover { color: var(--text-secondary); }
 .pv-prompt__thanks { margin: 0; font-weight: 600; text-align: center; }
 
 /* ---- owner launcher ---- */
@@ -5043,16 +5040,23 @@ html.theme-vt::view-transition-new(root) {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--glass-border);
 }
+/* Toasts carry short confirmations but also multi-sentence fix-it messages
+   (e.g. unpublished Firestore rules) — let those wrap instead of shoving the
+   Save button out of the footer. */
 .admin-toast {
   margin-right: auto;
+  min-width: 0;
+  max-width: 58ch;
   padding: 8px 14px;
-  border-radius: var(--radius-pill);
+  border-radius: 14px;
   font-size: 0.85rem;
   font-weight: 600;
+  line-height: 1.4;
 }
 .admin-toast--ok { color: #86efac; background: rgba(34, 197, 94, 0.12); }
 .admin-toast--err { color: #fca5a5; background: rgba(248, 113, 113, 0.12); }

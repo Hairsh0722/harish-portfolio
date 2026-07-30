@@ -203,8 +203,8 @@ function NavBar({ theme, onToggleTheme }) {
     attach();
 
     // The Resume section is hidden at mount and reveals on request, so it isn't
-    // in the DOM when the observer above is first built. Light its nav dot right
-    // away, then re-attach once it has mounted so scrollspy keeps tracking it.
+    // in the DOM when the observer above is first built. Highlight its nav item
+    // right away, then re-attach once it has mounted so scrollspy keeps tracking it.
     const unsub = onResumeRequest(() => {
       setActiveId("resume");
       setTimeout(attach, 80);

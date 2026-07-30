@@ -150,6 +150,9 @@
     "asideTitle": "Reach me directly",
     "asideCopy": "Prefer a quick chat? Message me on WhatsApp — no form needed.",
     "chatWhatsApp": "Chat on WhatsApp",
+    "bookCall": "Book a call",
+    "bookCallHint": "Free 30-minute intro call — walk me through the role or project and I'll tell you honestly if I'm the right fit.",
+    "bookCallMessage": "Hi Harish! I'd like to book a call with you. Which times work for you this week?",
     "callPhone": "Call me",
     "form": {
       "name": "Name",
@@ -248,7 +251,6 @@
       "hint": "Drop your name so Harish knows you stopped by — totally optional.",
       "placeholder": "Your name",
       "save": "Say hi",
-      "skip": "Skip",
       "dismiss": "Dismiss",
       "aria": "Introduce yourself",
       "thanks": "Thanks for stopping by, {{name}}! 👋"
